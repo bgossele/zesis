@@ -143,7 +143,7 @@ Deze query valt uiteen in 2 subqueries: een eerste om uit de \texttt{variants\_b
 
 \subsubsection{Combineren subqueries}
 \label{comb_subq_concept}
-De subqueries zullen elk een verzameling rijen als resultaat opleveren. Het is dan zaak deze verzamelingen met set-operaties te combineren tot de finale verzameling rijen die aan de query voldoen. De nodige set-operatie hangt af van de oorspronkelijke query. Zo zal het eindresultaat van een conjunctie van subqueries de doorsnede van de resultaatverzamelingen van de subqueries zijn. In het geval van een disjunctie is dit de unie van de resultaatverzamelingen, en in het geval van een negatie van een subquery is dit het verschil tussen de oorspronkelijke verzameling (voor de query) en de resultaatverzameling van de query. Om bijvoorbeeld alle varianten te vinden die niet op een bepaald gen x liggen, moet het verschil bepaald worden tussen de verzameling van alle varianten en de verzameling van alle varianten die op gen x liggen. Onderstaande tabel vat dit samen voor 2 subqueries $p$ en $r$, hun respectievelijke resultaatverzamelingen $res(p)$ en $res(r)$ en een initi\"ele verzameling rijen $I$.
+De subqueries zullen elk een verzameling rijen als resultaat opleveren. Het is dan zaak deze verzamelingen met set-operaties te combineren tot de finale verzameling rijen die aan de query voldoen. De nodige set-operatie hangt af van de oorspronkelijke query. Zo zal het eindresultaat van een conjunctie van subqueries de doorsnede van de resultaatverzamelingen van de subqueries zijn. In het geval van een disjunctie is dit de unie van de resultaatverzamelingen, en in het geval van een negatie van een subquery is dit het verschil tussen de oorspronkelijke verzameling (voor de query) en de resultaatverzameling van de query. Om bijvoorbeeld alle varianten te vinden die niet op een bepaald gen x liggen, moet het verschil bepaald worden tussen de verzameling van alle varianten en de verzameling van alle varianten die op gen x liggen. Tabel \ref{combineren_subqueries} vat dit samen voor 2 subqueries $p$ en $r$, hun respectievelijke resultaatverzamelingen $res(p)$ en $res(r)$ en een initi\"ele verzameling rijen $I$.
 
 \begin{table}[h]
 \centering
@@ -154,6 +154,8 @@ $p$ \texttt{AND} $r$ & $res(p) \cap res(r)$   \\ \hline
 $p$ \texttt{OR} $r$ & $res(p) \cup res(r)$    \\ \hline
 \texttt{NOT} $p$  & $I \setminus res(p)$ \\ \hline
 \end{tabular}
+\caption{De verschillende manieren om subqueries met elkaar te combineren.}
+\label{combineren_subqueries}
 \end{table}
 
 \subsubsection{Genotype-filter wildcards}

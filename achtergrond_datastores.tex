@@ -18,7 +18,7 @@ De reden waarom web-spelers overstapten op NoSQL-systemen of er zelf ontwierpen,
 
 Deze sectie belicht de belangrijkste begrippen in verband met NoSQL-databanken en contrasteert waar nodig met gelijkaardige concepten in het klassieke traditionele model.
 
-\subsubsection{Partitionering}
+\subsection{Partitionering}
 
 Gezien de grote datahoeveelheden en gedistribueerde setting van NoSQL is het een noodzaak data in de databank te verspreiden. Er bestaan meerdere strategie\"en om de entries in een databank (dit kunnen rijen, documenten, simpele values,\ldots zijn) over de nodes in een cluster te verdelen. Ten eerste is er het onderscheid tussen horizontaal en verticaal partitioneren: bij horizontaal schalen, ook sharding genoemd, wordt een entry niet gefragmenteerd, maar in zijn geheel toegewezen aan een node, op basis van een op de entry gedefinieerde key. De meeste NoSQL datastores implementeren een versie van horizontaal partitioneren. Verticaal partitioneren stamt uit het relationele model, en betekent het splitsen van grote tabellen in meerdere kleinere tabellen.\\
 Binnen het horizontaal partitioneren bestaan 2 voorname methodes \cite{grolinger2013data}:
@@ -28,7 +28,7 @@ Binnen het horizontaal partitioneren bestaan 2 voorname methodes \cite{grolinger
 Een techniek die vaak gepaard gaat met consistent hashing is het gebruik van \textit{virtual nodes} om load-balancing te verbeteren: elke fysieke node in het cluster krijgt meerdere posities toegewezen op de ring, en is zo verantwoordelijk voor meerdere virtuele nodes. Dit zorgt voor een betere verdeling van de entries over de nodes, gezien entries niet per se uniform over de ring verdeeld liggen. Bovendien moeten niet alle fysieke nodes verantwoordelijk zijn voor evenveel virtuele nodes: het systeem kan meer virtuele nodes toewijzen aan performantere fysieke nodes en zo rekening houden met heterogeniteit in de fysieke infrastructuur. Bovendien zal, bij het falen van een fysieke node, zijn opgeslagen last eerlijk verspreid worden tussen de overgebleven fysieke nodes. Omgekeerd zal een nieuwe node wanneer hij toetreedt tot het cluster van alle andere fysieke nodes ongeveer evenveel last overnemen  \cite{grolinger2013data}\cite{decandia2007dynamo}.
 \end{itemize}  
 
-\subsubsection{Consistentie}
+\subsection{Consistentie}
 
 Consistentie van database-transacties betekent dat transacties de databank in een consistente staat achterlaten: alle data die een applicatie kan zien, is een consistente snapshot van de databank \cite{ports2010transactional}. Traditionele RDBMS bieden vaak transacties met de zogenaamde ACID-eigenschappen \cite{haerder1983principles}:
 \begin{itemize}
@@ -47,6 +47,9 @@ Ook in NoSQL-systemen, die vaak gedistribueerd van aard zijn, is het garanderen 
 \end{itemize}
 
 Vele NoSQL-systemen stellen de gebruiker echter niet voor een voldongen feit bij de keuze tussen strikte en uiteindelijke consistentie: dankzij zogenaamde \textit{quora} kan de gebruiker zelf configureren welke consistentie het systeem levert. Door lees- en schrijfquora in te stellen, kan de gebruiker tunen hoeveel replica's respectievelijk moeten returnen bij een schrijfopdracht, en het welslagen van een schrijfopdracht moeten bevestigen. Op deze manier kan de gebruiker zelf een trade-off maken tussen snel lezen, schrijven en de behaalde consistentie. Bovendien zal de gebruiker, wanneer de som van het lees- en schrijfquorum groter is dan de replicatiefactor van het cluster, steeds de meest recente versie van gegevens zien, wat hetzelfde betekent als onmiddellijke, strikte consistentie.
+
+\subsection{Storage layout}
+{\color{red} TODO}
 
 \section{NoSQL-klassen}
 
