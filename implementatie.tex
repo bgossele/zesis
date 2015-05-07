@@ -13,7 +13,8 @@ Omdat GEMINI meerdere processoren of zels computers kan gebruiken bij het inlade
 
 \subsection{Keuze}
 
-De uiteindelijke keuze voor een databank viel op Apache Cassandra. Van de systemen besproken in [\ref{nosql_survey}] heeft Cassandra veruit de meest interessante architectuur qua schaalbaarheid en bovendien leent het columnaire model zich goed tot het modelleren van de tabellen in de oorspronkelijke versie van GEMINI. Vergeleken met het andere columnaire systeem, HBase, heeft Cassandra uitgebreidere query-mogelijkheden. Vergeleken met MongoDB, dat sterker staat op het gebied van querying en indexing heeft Cassandra het voordeel dat het flexibeler is voor concurrent schrijven naar de databank. Bovendien blijkt uit eerdere experimenten met MongoDB binnen het lab dat MongoDB niet space-effici\"ent BSON-documenten kan uitbreiden. In het geval van een incrementele versie van GEMINI, waar na verloop van tijd genoominformatie van extra proefpersonen ingeladen moet worden, leidt dit tot fragmentatie. Cassandra daarentegen kan eenvoudig het schema van tabellen aanpassen en naar behoefte extra kolommen en rijen toevoegen.\\
+De uiteindelijke keuze voor een databank viel op Apache Cassandra. Van de systemen besproken in [\ref{nosql_survey}] heeft Cassandra veruit de meest interessante architectuur qua schaalbaarheid en bovendien leent het columnaire model zich goed tot het modelleren van de tabellen in de oorspronkelijke versie van GEMINI. Vergeleken met het andere columnaire systeem, HBase, heeft Cassandra uitgebreidere query-mogelijkheden. Vergeleken met MongoDB, dat sterker staat op het gebied van querying en indexing heeft Cassandra het voordeel dat het flexibeler is voor concurrent schrijven naar de databank. Bovendien blijkt uit eerdere experimenten met MongoDB binnen het lab dat MongoDB niet space-effici\"ent BSON-documenten kan uitbreiden {\color{red} TODO}. %TODO
+In het geval van een incrementele versie van GEMINI, waar na verloop van tijd genoominformatie van extra proefpersonen ingeladen moet worden, leidt dit tot fragmentatie. Cassandra daarentegen kan eenvoudig het schema van tabellen aanpassen en naar behoefte extra kolommen en rijen toevoegen.\\
 Zoals later uitgebreid aan bod komt, heeft Cassandra ook nadelen. Vooral de eerder beperkte query-capaciteiten bemoeilijken het implementeren van de uitgebreide ad-hoc queryfunctionaliteiten van GEMINI.
 
 \section{Conceptueel ontwerp}
@@ -125,6 +126,16 @@ Een aanpak die in beide gevallen op een voorspelbare en betrouwbare manier werkt
 \end{itemize}
 
 Ten slotte is het ook nog interessant een feature aan de gebruikersinterface van GEMINI toe te voegen waarmee de gebruiker zelf nieuwe basistabellen kan defini\"eren wanneer hij dit nodig acht.
+
+\paragraph{\texttt{JOIN}s}
+
+Zoals eerder aangehaald, biedt Cassandra geen \texttt{JOIN}s in z'n querytaal. In de plaats moedigt Cassandra het \textit{materializeren} van \texttt{JOIN}s aan, namelijk het samen bewaren van gegevens die samen opgevraagd zullen worden. Dit leidt tot de denormalizatie t.o.v. relationele dataschema's, die ontworpen zijn om zo opslageffici\"ent mogelijk alle data voor te stellen en zwaar inzetten op \texttt{JOIN}s om gegevens uit verschillende tabellen met elkaar te combineren.\\
+GEMINI biedt de gebruiker ook de optie verschillende tabellen samen te doorzoeken m.b.v. \texttt{JOIN}s. Enkele voorbeelden zijn:
+
+\lstinputlisting[language=SQL]{vb_SQL_queries/joins.txt}
+
+Dankzij het hierboven beschreven query-mechanisme is het echter niet nodig alle tabellen die met elkaar gejoind zouden kunnen worden, ook effectief samen op te slaan in 1 tabel. Door weeral juist gekozen hulptabellen te defini\"eren, kunnen het reeds uitgelegde datamodel en query-mechanisme ook hier van dienst zijn.\\
+Om de eerste van de twee queries uit bovenstaand voorbeeld uit te voeren, is dan bijvoorbeeld een tabel nodig die het mogelijk maakt alle variants met een bepaalde \texttt{impact\_severity} op te vragen (bvb. \texttt{variants\_by\_impact\_severity}), en een tweede tabel die toelaat alle genen uit \texttt{gene\_detailed} op te vragen voor een bepaalde waarde van de \texttt{gene} en \texttt{chrom} kolommen (bvb. \texttt{gene\_detailed\_by\_gene\_chrom}). De gewenste variants kunnen opgehaald worden uit de \texttt{variants\_by\_impact\_severity}-tabel en vervolgens kunnen via de \texttt{gene\_detailed\_by\_gene\_chrom} alle gewenste kolommen uit de \texttt{variants}- en \texttt{gene\_detailed}-tabellen geselecteerd worden. Een analoge redenering gaat op voor de tweede voorbeeldquery en bij uitbreiding ook voor de andere voor GEMINI relevante \texttt{JOIN}s \cite{gemini_joins}.
 
 \subsection{\texttt{gemini load}}
 

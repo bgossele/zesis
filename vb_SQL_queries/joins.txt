@@ -1,0 +1,12 @@
+SELECT 	v.chrom, v.gene, g.transcript_min_start,
+		g.transcript_max_end, g.synonym, g.rvis_pct, v.impact
+FROM   	variants v, gene_summary g 
+WHERE  	v.chrom = g.chrom AND v.gene = g.gene AND
+		v.impact_severity='HIGH'
+	  
+SELECT 	v.gene, g.transcript_status, g.transcript,
+		v.impact 
+FROM   	variant_impacts v, gene_detailed g
+WHERE  	v.transcript = g.transcript AND 
+		v.gene = g.gene AND
+		v.gene = 'SCNN1D' AND v.impact_severity!='LOW'
