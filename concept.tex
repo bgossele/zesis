@@ -1,0 +1,193 @@
+\chapter{Cassandra als databank voor GEMINI}
+\label{concept}
+
+Dit hoofdstuk belicht aan de hand van een case-study de conceptuele uitwerking van een schaalbare tool voor genoomanalyse. De case-study in kwestie is een versie van GEMINI die werkt met een Cassandra i.p.v. SQLite databank. Achtereenvolgens komen een motivatie voor de keuze voor Cassandra, de nodige aanpassingen aan het dataschema van GEMINI, en de nodige aanpassingen om de inlaad- en querying-functionaliteit van GEMINI te behouden, aan bod.
+
+\section{Keuze database}
+
+\subsection{Vereisten}
+
+Zoals beschreven in [\ref{gemini_beschrijving}] bewaart GEMINI de data over genetische varianten en proefpersonen in enkele zeer grote tabellen. Een eerste vereiste voor een database is dus om deze tabulaire data goed te kunnen voorstellen en beheren. Omdat de nadruk van dit onderzoek specifiek ligt op het schaalbaar maken van de applicatie, gebeurt dit bij voorkeur d.m.v. automatische verspreiding over verschillende nodes in een cluster.\\
+Omdat GEMINI meerdere processoren of zels computers kan gebruiken bij het inladen van de gegevens uit VCF-bestanden, is goede concurrency controle en hoge schrijf-throughput eveneens belangrijk. Na het inladen van de VCF bestanden voert GEMINI enkel nog lees-queries uit, dus zijn de belangrijkste verdere vereisten voor een database hoge lees-throughput, goede query-mogelijkheden en indexeringsmechanismes.
+\\Ten laatste is een Python-API ook nuttig, gezien GEMINI in Python ge\"implementeerd is.
+
+\subsection{Keuze}
+
+De uiteindelijke keuze voor een databank viel op Apache Cassandra. Van de systemen besproken in [\ref{nosql_survey}] heeft Cassandra veruit de meest interessante architectuur qua schaalbaarheid en bovendien verwachten we dat het columnaire model zich goed leent tot het modelleren van de tabellen in de oorspronkelijke versie van GEMINI, wat we dan ook experimenteel zullen valideren. Vergeleken met het andere columnaire systeem in de vergelijkende studie, HBase, heeft Cassandra uitgebreidere query-mogelijkheden. Vergeleken met MongoDB, dat sterker staat op het gebied van querying en indexing heeft Cassandra het voordeel dat het flexibeler is voor concurrent schrijven naar de databank. Bovendien blijkt uit eerdere experimenten met MongoDB binnen het lab dat MongoDB niet space-effici\"ent BSON-documenten kan uitbreiden {\color{red} TODO referentie}. %TODO
+In het geval van een incrementele versie van GEMINI, waar na verloop van tijd genoominformatie van extra proefpersonen ingeladen moet worden, leidt dit tot fragmentatie. Cassandra daarentegen kan eenvoudig het schema van tabellen aanpassen en naar behoefte extra kolommen en rijen toevoegen.\\
+Zoals later uitgebreid aan bod komt, heeft Cassandra ook nadelen. Vooral de eerder beperkte query-capaciteiten bemoeilijken het implementeren van de uitgebreide ad-hoc queryfunctionaliteiten van GEMINI.
+
+\section{Dataschema}
+
+\label{cassandra_datamodel}
+
+Het datamodel van Apache Cassandra vertoont enkele sterke verschillen met het relationele datamodel. Dit vereist enkele grondige aanpassingen aan het database schema van GEMINI. In deze sectie komen de belangrijkste eigenschappen van Cassandra aan bod, hun gevolgen voor de belangrijkste database-functionaliteiten, en een conceptuele schets van benodigde aanpassingen aan het onderliggende dataschema van GEMINI.
+
+\subsection{Datamodel Cassandra}
+
+Zoals eerder vermeld bewaart Cassandra de cellen in een tabel als een 2 dimensionele map van enerzijds een per rij gedefinieerde primary key, en de naam van een kolom. De inhoud van cellen die niet in de primary key van een rij liggen, heeft voor Cassandra geen enkele betekenis.\\
+Die primary key bestaat uit 2 delen: het eerste is de partition key, deze bestaat uit minstens 1 kolom en de (gehashte) waarde hiervan bepaalt via het consistent-hashing mechanisme op welke partitie in het cluster de rij terechtkomt. Het tweede, optionele, deel is de clustering key, en bepaalt in welke volgorde rijen met dezelfde partition key op 1 node bewaard worden. Dit is standaard in oplopende volgorde.\\
+
+Gezien Cassandra in essentie een grote map is, is de effici\"entste manier om rijen op te vragen uit een tabel eenvoudig de hash te berekenen van de primary key om vervolgens de passende rijen te returnen. De inhoud van kolommen buiten de primary key is ook volledig betekenisloos voor Cassandra en het individueel en iteratief inspecteren van cellen druist om performantieredenen in tegen de principes van Cassandra. Bij gevolg zijn de query-mogelijkheden eerder beperkt: zonder het defini\"eren van indices is het in \texttt{WHERE}-clausules enkel mogelijk beperkingen op te leggen aan kolommen in de primary key, en dan nog zo dat de bedoelde rijen binnen 1 partitie liggen, en opeenvolgend opgeslagen zijn. Daarom moet er een gelijkheidsbeperking opgelegd worden aan de volledige partition key, en mogen er zowel gelijk- als ongelijkheidsbeperkingen opgelegd worden aan de kolommen in de clustering key, maar enkel op voorwaarde dat de voorgaande kolom in de clustering key ook met een gelijkheidsbeperking gespecifieerd is. Op deze manier kan Cassandra queries zeer snel uitvoeren door ze a.d.h.v. de hash van de partition key naar een juiste node te routeren, en vervolgens via de overige opgegeven kolommen de locatie van de juiste rijen te berekenen (die omwille van de clustering allemaal op elkaar volgend opgeslagen zijn). Dit gebeurt zonder de waarden van individuele cellen te bekijken, maar dus enkel door het berekenen van een simpele hashfunctie. Range-queries zijn dus enkel mogelijk op kolommen in de clustering key en het is niet mogelijk \texttt{!=}-beperkingen te gebruiken in \texttt{WHERE}-clausules. Bovendien laat Cassandra enkel toe beperkingen met elkaar te combineren via conjuncties, dus niet via \texttt{OR}- of \texttt{NOT}-operatoren. Een uitzondering op dit laatste is de \texttt{IN}-operator: op deze manier kan de gebruiker meegeven in welke set van waarden een bepaalde kolom moet liggen, maar dit is ook enkel mogelijk op de laatste kolom in de partition key of de laatste kolom in de clustering key (maar weer op voorwaarde dat de voorgaande kolommen reeds beperkt zijn).\\
+Cassandra laat toe om indices op kolommen te defini\"eren, maar deze zijn niet bijzonder nuttig. Ze laten enkel gelijkheidsbeperkingen toe (dus geen range-queries) en bovendien raadt Datastax het gebruik van indices op kolommen met zowel een zeer lage als een zeer hoge kardinaliteit af, dit omdat in het eerste geval de index tabel zal bestaan uit zeer weinig zeer lange rijen voor elk van de ge\"indexeerde waarden en in het tweede geval Cassandra bij een query op de ge\"indexeerde kolom door zeer veel verscheidene waarden zal moeten zoeken om een klein aantal resultaten te vinden \cite{when_to_use_index}.
+
+\subsection{Databaseschema GEMINI}
+
+Zoals blijkt uit bovenstaande beschrijving van het datamodel van Cassandra, leent het systeem zich niet goed tot ad-hoc querying: het is niet mogelijk op een performante manier zomaar aan willekeurige kolommen in een tabel voorwaarden op te leggen en deze voorwaarden met elkaar te combineren. Dit betekent dat bij het ontwerpen van het database schema al rekening gehouden moet worden met de queries die achteraf op de data mogelijk moeten zijn. Omdat het soort queries dat een tabel ondersteunt sterk samenhangt met de keuze van de primary key van de tabel en GEMINI meerdere, uiteenlopende soorten queries op elke tabel vereist, zal dit onvermijdelijk leiden tot duplicatie van data.\\
+De belangrijkste queries die ondersteund moeten worden in GEMINI, zijn de volgende:
+\begin{itemize}
+\item Queries op de \texttt{variants}-tabel die genotype-eigenschappen van specifieke proefpersonen opvragen, al dan niet met behulp van sample wildcards. Het moet ook mogelijk zijn voorwaarden op te leggen aan de genotypes van proefpersonen, met genotype-filters en -wildcards.
+\item Normale SQL-achtige queries op arbitraire kolommen van de \texttt{variants}- en \texttt{samples}-tabellen.
+\item Queries op \texttt{JOIN}s van tabellen. De documentatie van GEMINI heeft het in dit geval vooral over \texttt{JOIN}s tussen enerzijds de \texttt{gene\_detailed}- of \texttt{gene\_summary}-tabellen en anderzijds de \texttt{variants}- of \texttt{variant\_impacts}-tabellen \cite{gemini_joins}.
+\end{itemize}
+Deze drie vraagstukken komen achtereenvolgens aan bod in deze sectie.\\\\
+In deze sectie komen meerdere schematische voorstellingen van databanktabellen voor. Om de leesbaarheid te verhogen, zijn hierin de namen van kolommen uit de partition key steeds in het {\color{green} groen} en van kolommen uit de clustering key in het {\color{red} rood} weergegeven.
+
+\subsubsection{\texttt{variants}-tabel vs. genotype-informatie}
+
+Het belangrijkste vraagstuk is hoe de genotype-kolommen uit het oorspronkelijke relationele model in Cassandra op te slaan. Hier zijn enkele opties voor:
+
+\begin{itemize}
+
+\item \textbf{Collection columns} Cassandra biedt zogenaamde collection types, zoals sets, lists of maps. Dit is vergelijkbaar met de bestaande implementatie in SQLite (buiten dat ze in Cassandra niet als binary blobs bewaard worden). Het nadeel is echter dat deze collections niet meer dan 65536 ($2^{16}$) entries kunnen bevatten, wat het hele nut van de migratie naar Cassandra teniet zou doen.
+
+\item \textbf{Super-\texttt{variants}-tabel} Een andere mogelijkheid is de \texttt{variants}-tabel uit te breiden met een kolom voor elke genotype-eigenschap van elke sample. Deze aanpak heeft als voornaamste voordeel dat de kolommen met genotype-eigenschappen van specifieke samples zonder omwegen uit de \texttt{variants}-tabel gehaald kunnen worden. Dit is vooral van belang voor de in (\ref{gemini_beschrijving}) beschreven sample-filters. Bovendien kan Cassandra tot 2 miljard cellen opslaan op 1 partitie, dus vormt het grote aantal kolommen dat dit model met zich meebrengt, geen probleem.\\
+Het nadeel is echter dat het onmogelijk is ad-hoc queries te defini\"eren op genotypes van willekeurige eigenschappen zonder het gebruik van secundaire indices. Elke query die in een \texttt{WHERE}-clausule andere kolommen of samples betrekt, vereist om de hierboven beschreven redenen een andere keuze van de primary key om effici\"ent de juiste rijen te kunnen opzoeken.
+
+\begin{table}[!htbp]
+\begin{tabular}{@{}|l|l|l|l|l|l|l|l|l|l|@{}}
+\toprule
+\color{green} variant\_id & ref & alt & \ldots & gt\_type\_alex & gt\_type\_john & \ldots & gt\_depth\_alex & gt\_depth\_john & \ldots \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\item \textbf{\texttt{genotype}-tabellen} Een derde optie is een \texttt{variants}-tabel zonder genotype-informatie, gecombineerd met een tabel voor elke eigenschap van de genotypes van de samples, met een rij voor elke \texttt{(variant, sample)}. Bijvoorbeeld:\\
+
+\begin{itemize}
+
+\item Een \texttt{variants\_by\_samples\_gt}-tabel met als primary key \texttt{((sample\_name, gt\_type), (variant\_id))}. De primary key is zo gekozen dat alle variants waarvoor een sample eenzelfde genotype heeft, bij elkaar op 1 node liggen, zodat deze gemakkelijk opgevraagd kunnen worden. Hetzelfde was mogelijk geweest met enkel \texttt{sample\_name} als partition key, maar met de bovenstaande, granulairdere partition key zijn de variants beter over het cluster verspreid. Bovendien houdt het vanuit een semantisch oogpunt geen steek range queries uit te voeren op de \texttt{gt\_type}-kolom, dus moet deze niet per se in de clustering key staan. De \texttt{variant\_id}-kolom ten slotte maakt enkel deel uit van de primary key om deze uniek te maken voor elk tupel \texttt{(variant, sample, genotype)}.\\
+
+\begin{table}[!htbp]
+\begin{tabular}{@{}|l|l|l|@{}}
+\toprule
+\color{green} sample\_name & \color{green} genotype & \color{red} variant\_id \\ \bottomrule
+\end{tabular}\\
+\end{table}
+
+\item Een \texttt{variants\_by\_samples\_gt\_depth}-tabel met als primary key \texttt{((sample\_name), (gt\_depth, variant\_id))}. Omdat range queries op de \texttt{gt\_depth}-kolom wel een vereiste zijn, moeten alle variants voor eenzelfde sample volgens gt\_depth geclusterd, en dus gerangschikt staan. Vandaar dat de \texttt{gt\_depth}-kolom in dit geval in de clustering key, en niet in de partition key staat. Voor de rest is de keuze van de primary key volledig analoog met die in de \texttt{variants\_by\_samples\_gt}-tabel.
+
+\begin{table}[!htbp]
+\begin{tabular}{@{}|l|l|l|@{}}
+\toprule
+\color{green} sample\_name & \color{red} gt\_depth & \color{red} variant\_id \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\item Vergelijkbare tabellen voor de overige genotype-eigenschappen.
+
+\end{itemize}
+
+Het grote voordeel van deze aanpak is dat het, dankzij de keuze van de primary key, zeer eenvoudig is variants op te vragen waarvoor het genotype van \'e\'en sample aan specifieke gelijkheids- of ongelijkheidsvoorwaarden voldoet. Het nadeel van dit schema is drieledig: ten eerste scheidt het de informatie over de genotypes van samples van de andere informatie over de variants. Dit betekent dat, om deze samen weer te geven, een \texttt{JOIN} van de \texttt{variants}-tabel met een \texttt{genotype}-tabel nodig is, en Cassandra biedt zoals geweten geen \texttt{JOIN}. Ten tweede is het onmogelijk om met een sample-filter voor meerdere samples de genotypes tegelijkertijd op te vragen, en ten laatste is het onmogelijk in een query voorwaarden op te leggen aan de genotypes van meerdere samples.
+
+\end{itemize}
+
+De uiteindelijke keuze is gevallen op een combinatie van de tweede en derde optie. Dit om de volledige oorspronkelijke functionaliteit van GEMINI te kunnen bieden: enerzijds het opvragen van de genotype-informatie van willekeurige samples door middel van de sample-filters, en anderzijds het query'en van de \texttt{variants}-tabel met, dankzij gt-filters en -wildcards, beperkingen op de genotypes van specifiek gekozen samples. Zoals hierboven beschreven is dit laatste niet voor de hand liggend, en zal door het ontbreken van \texttt{JOIN}s en de layout van de \texttt{genotype}-tabellen het combineren van beperkingen op de genotypes van meerdere samples nog extra aanpassingen vergen. Hier gaan secties \ref{gemini_query_concept} en \ref{gemini_query_impl} dieper op in.
+
+\subsubsection{\texttt{variants-, samples-}tabel vs. arbitraire queries}
+
+Een tweede belangrijke vraagstuk is hoe de \texttt{variants-} en \texttt{samples-}tabellen zo te ontwerpen dat ze ook op andere, arbitraire kolommen effici\"ent doorzoekbaar zijn.\\
+Om queries op kolommen te ondersteunen die logisch gezien enkel met gelijkheden beperkt zullen worden, zoals \texttt{chrom} of respectievelijk \texttt{sex}, zou het in theorie volstaan op deze kolommen een secundaire index te defini\"eren. Dit is eenvoudig bij de creatie van de tabel, veroorzaakt geen duplicatie van data en is zeer rechttoe-rechtaan bij het query'en, maar heeft zoals hierboven vermeld onvoorspelbare performantie afhankelijk van de kardinaliteit van de kolommen. Bovendien werkt dit mechanisme niet voor kolommen die vaker met ongelijkheidsbeperkingen gequeried zullen worden, zoals \texttt{depth}, \texttt{start}, of in het geval van de \texttt{samples}-tabel (hypothetisch, deze tabellen zitten niet standaard in GEMINI) leeftijd of generatie.\\
+
+Een aanpak die in beide gevallen op een voorspelbare en betrouwbare manier werkt, is om net als voor de genotype-informatie extra tabellen te defini\"eren, met een specifiek gekozen primary key die de gewenste query mogelijk maakt. Deze oplossing zorgt natuurlijk voor veel gedupliceerde data, maar heeft als voordeel dat ze \'e\'en coherente en performante aanpak van het probleem mogelijk maakt. Bij het opstellen van deze tabellen moet goed overwogen worden welke vaakgebruikte queries een eigen tabel vereisen en verdienen. Minder frequente, uitgebreidere queries, kunnen mits een goede keuze van de basistabellen immers gesplitst worden in subqueries op deze basistabellen. Hetzelfde mechanisme dat voor de gt-filters en -wildcards uitgebreide queries zal uitvoeren is ook hier van toepassing. Dit zal natuurlijk minder effici\"ent zijn dan een aangepaste tabel voor de uitgebreide, originele query, maar laat toe de data-duplicatie enigszins binnen de perken te houden. Voorbeelden van zulke basistabellen zijn:
+
+\begin{itemize}
+\item Een \texttt{variants\_by\_chrom\_start}-tabel, die het eenvoudig maakt alle varianten op te zoeken die op een bepaald chromosoom binnen een range van startposities liggen. De primary key is in dit geval: \texttt{((chrom), (start, variant\_id))}. 
+
+\begin{table}[!htbp]
+\begin{tabular}{@{}|l|l|l|@{}}
+\toprule
+\color{green} chrom & \color{red} start & \color{red} variant\_id \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\item Een \texttt{variants\_by\_gene}-tabel, die het eenvoudig maakt alle varianten binnen \'e\'en gen op te zoeken. De primary key is in dit geval: \texttt{((gene), (variant\_id))}.
+
+\begin{table}[!htbp]
+\begin{tabular}{@{}|l|l|@{}}
+\toprule
+\color{green} gene & \color{red} variant\_id \\ \bottomrule
+\end{tabular}
+\end{table}
+
+\item Een \texttt{samples\_by\_sex}-tabel, die het eenvoudig maakt alle samples van een bepaald geslacht op te vragen. De primary key is in dit geval: \texttt{((sex), (sample\_name))}.
+
+\begin{table}[!htbp]
+\begin{tabular}{@{}|l|l|@{}}
+\toprule
+\color{green} sex & \color{red} sample\_name \\ \bottomrule
+\end{tabular}
+\end{table}
+\end{itemize}
+
+Ten slotte is het ook nog interessant een feature aan de gebruikersinterface van GEMINI toe te voegen waarmee de gebruiker zelf nieuwe basistabellen kan defini\"eren.
+
+\subsubsection{\texttt{JOIN}s}
+
+Zoals eerder aangehaald, biedt Cassandra geen \texttt{JOIN}s in de bijhorende querytaal CQL. In de plaats moedigt Cassandra het \textit{materializeren} van \texttt{JOIN}s aan, namelijk het samen bewaren van gegevens die samen opgevraagd zullen worden. Dit leidt tot de denormalizatie t.o.v. relationele dataschema's, die ontworpen zijn om zo opslageffici\"ent mogelijk alle data voor te stellen en zwaar inzetten op \texttt{JOIN}s om gegevens uit verschillende tabellen met elkaar te combineren.\\
+GEMINI biedt de gebruiker ook de optie verschillende tabellen samen te doorzoeken m.b.v. \texttt{JOIN}s. Enkele voorbeelden zijn:
+
+\lstinputlisting[language=SQL]{vb_SQL_queries/joins.txt}
+
+Dankzij het hierboven beschreven query-mechanisme is het echter niet nodig alle tabellen die met elkaar gejoind zouden kunnen worden, ook effectief samen op te slaan in 1 tabel. Door weeral juist gekozen hulptabellen te defini\"eren, kunnen het reeds uitgelegde datamodel en query-mechanisme ook hier van dienst zijn.\\
+Om de eerste van de twee queries uit bovenstaand voorbeeld uit te voeren, is dan bijvoorbeeld een tabel nodig die het mogelijk maakt alle variants met een bepaalde \texttt{impact\_severity} op te vragen (bvb. \texttt{variants\_by\_impact\_severity}), en een tweede tabel die toelaat alle genen uit \texttt{gene\_detailed} op te vragen voor een bepaalde waarde van de \texttt{gene} en \texttt{chrom} kolommen (bvb. \texttt{gene\_detailed\_by\_gene\_chrom}). De gewenste variants kunnen opgehaald worden uit de \texttt{variants\_by\_impact\_severity}-tabel en vervolgens kunnen via de \texttt{gene\_detailed\_by\_gene\_chrom} alle gewenste kolommen uit de \texttt{variants}- en \texttt{gene\_detailed}-tabellen geselecteerd worden. Een analoge redenering gaat op voor de tweede voorbeeldquery en bij uitbreiding ook voor de andere voor GEMINI relevante \texttt{JOIN}s \cite{gemini_joins}.
+
+\section{\texttt{gemini load}}
+
+Het inladen van de genoomdata in de GEMINI-databank is conceptueel erg eenvoudig: elke lijn uit een VCF-file komt overeen met een variant en dus een rij in de \texttt{variants}-tabel (en de bijhorende hulptabellen), elke lijn in een PED-file met een sample en dus een rij in de \texttt{samples}-tabel (en de bijhorende hulptabellen). Het inladen kan bovendien versneld worden door de text-input te verdelen over verschillende cores en deze in parallel de data te laten invoeren.
+
+\section{\texttt{gemini query}}
+\label{gemini_query_concept}
+Het uitvoeren van de gewoonlijke GEMINI-queries tegen een Cassandra-databank vergt enkele ingrijpende aanpassingen ten opzichte van de SQLite-versie van Cassandra. Het doel is natuurlijk deze aanpassingen zoveel mogelijk te verbergen voor de gebruiker, wat ook in grote mate gelukt is. In deze sectie komt achtereenvolgens aan bod hoe ingewikkelde queries gesplitst worden in eenvoudige subqueries, hoe de resultaten hiervan vervolgens gecombineerd worden en wat dit betekent voor de meest geavanceerde feature van GEMINI, namelijk de genotype-filter wildcards.
+
+\subsection{Splitsing in subqueries}
+
+Zoals beschreven in \ref{cassandra_datamodel}, kan Cassandra enkel effici\"ent queries uitvoeren die beperkingen opleggen aan de kolommen in de primary key van een tabel, en dit ook slechts onder bepaalde voorwaarden. Bovendien is de enige logische operator die Cassandra ondersteunt om beperkingen te combineren, de conjunctie.\\
+Om arbitraire queries en \texttt{WHERE}-clausules te ondersteunen, kan GEMINI niet zoals in de SQLite-versie de \texttt{WHERE}-clausule zomaar onveranderd aan Cassandra doorgeven. Beschouw, ter illustratie, volgende query:\\\\
+\texttt{SELECT chrom, start, subtype FROM variants WHERE chrom = 'chromX' \\AND start > 5600 AND gene = 'gene\_A'}.\\\\
+Deze query valt uiteen in 2 subqueries: een eerste om uit de \texttt{variants\_by\_chrom\_start}-tabel alle variants op te vragen die voldoen aan de voorwaarde \texttt{chrom = 'chromX' AND start > 5600} en een tweede om uit de \texttt{variants\_by\_gene}-tabel alle variants die voldoen aan \texttt{gene = 'gene\_A'} op te vragen.\\
+
+\subsection{Combineren subqueries}
+\label{comb_subq_concept}
+De subqueries zullen elk een verzameling rijen als resultaat opleveren. Het is dan zaak deze verzamelingen met set-operaties te combineren tot de finale verzameling rijen die aan de query voldoen. De nodige set-operatie hangt af van de oorspronkelijke query. Zo zal het eindresultaat van een conjunctie van subqueries de doorsnede van de resultaatverzamelingen van de subqueries zijn. In het geval van een disjunctie is dit de unie van de resultaatverzamelingen, en in het geval van een negatie van een subquery is dit het verschil tussen de oorspronkelijke verzameling (voor de query) en de resultaatverzameling van de query. Om bijvoorbeeld alle varianten te vinden die niet op een bepaald gen x liggen, moet het verschil bepaald worden tussen de verzameling van alle varianten en de verzameling van alle varianten die op gen x liggen. Tabel \ref{combineren_subqueries} vat dit samen voor 2 subqueries $p$ en $r$, hun respectievelijke resultaatverzamelingen $res(p)$ en $res(r)$ en een initi\"ele verzameling rijen $I$.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Query} & \textbf{Resultaat}    \\ \hline
+$p$ \texttt{AND} $r$ & $res(p) \cap res(r)$   \\ \hline
+$p$ \texttt{OR} $r$ & $res(p) \cup res(r)$    \\ \hline
+\texttt{NOT} $p$  & $I \setminus res(p)$ \\ \hline
+\end{tabular}
+\caption{De verschillende manieren om subqueries met elkaar te combineren.}
+\label{combineren_subqueries}
+\end{table}
+
+\subsection{Genotype-filter wildcards}
+
+Ter herinnering, de structuur van een genotype-filter wildcard:\\\\
+\texttt{(genotype\_column).(sample\_wildcard).(gt\_wildcard\_rule).(rule\_enforcement)}\\\\
+Het uitvoeren en evalueren van deze wildcards is conceptueel niet erg ingewikkeld: het volstaat de \texttt{sample\_wildcard} te evalueren en vervolgens voor elk van de resulterende samples een subquery op te stellen op de voor \texttt{genotype\_column} relevante hulptabel van de \texttt{variants}-tabel. Hoe deze subqueries met elkaar gecombineerd moeten worden, hangt af van de gegeven \texttt{rule\_enforcement}:
+
+\begin{itemize}
+\item Een \texttt{all}-wildcard leidt tot de conjunctie van alle subqueries.
+\item Een \texttt{any}-wildcard leidt tot de disjunctie van alle subqueries.
+\item Een \texttt{none}-wildcard leidt tot de conjunctie van de negaties van alle subqueries.
+\item \texttt{count}-wildcards vallen niet zomaar met set-algebra te evalueren: bij het combineren van de resultaten van alle subqueries moet voor elke variant geteld worden in de resultaatverzameling van hoeveel subqueries hij voorkomt. Nadien kan GEMINI eenvoudig op basis van deze tellingen de varianten bepalen die aan de \texttt{count}-regel voldoen.
+\end{itemize}
+
+Dit betekent dat weer veel werk van de databank naar GEMINI zelf verschuift. Een mogelijke manier om dit leed te verzachten is, gezien de goede concurrency-eigenschappen van NoSQL-systemen als Cassandra, om de subqueries in parallel te evalueren in plaats van sequentieel.
+
+\section*{Conclusies conceptueel ontwerp}
+
+Bij wijze van gevalstudie voor schaalbare genoomanalyse hebben we een versie van GEMINI draaiende op Apache Cassandra ontworpen. Cassandra droeg onze voorkeur uit omwille van een uitstekende reputatie qua schaalbaarheid, een flexibele datamodel dat goed bij GEMINI past en een gemakkelijk te gebruiken querying API. Voor de omzetting van SQLite naar Cassandra waren enkele aanpassingen aan het ontwerp van GEMINI nodig: vooral aan het databaseschema en het queryingmechanisme, in mindere mate aan de loading-functionaliteit. Hoofdstuk \ref{implementatie} bespreekt de praktische implementatie van dit ontwerp.
