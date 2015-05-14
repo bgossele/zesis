@@ -17,7 +17,7 @@ Elke variant in een input VCF file wordt uitvoerig geannoteerd na automatische v
 \end{figure}
 
 Daarnaast zijn er nog tabellen zoals de \texttt{variant\_impacts}- en \texttt{gene\_detailed}-tabellen die respectievelijk extra informatie over de variants en het menselijk genoom bevatten. Deze informatie komt in het eerste geval eveneens uit de annotatiebestanden, en in het tweede uit tekstbestanden met referentie-informatie over het menselijk genoom die GEMINI, indien gewenst mee inlaadt.\\
-Ten laatste zijn er nog enkele kleine tabellen met meta-informatie, zoals de \texttt{resources}-tabel die de gebruikte annotatie-files bevat, en de \texttt{version}-tabel die bevat door welke versie van GEMINI de data ingeladen is.\\
+Ten laatste zijn er nog enkele kleine tabellen met meta-informatie, zoals de \texttt{resources}-tabel die de gebruikte annotatie-files bevat, en de \texttt{version}-tabel die bijhoudt door welke versie van GEMINI de data ingeladen is.\\
 
 \begin{figure}[!h]
 \includegraphics[width=\textwidth,height=\textheight,keepaspectratio]{gemini_schema}
@@ -39,10 +39,10 @@ GEMINI laat de gebruiker toe de opgeslagen genoomdata te doorzoeken. Enerzijds v
 Zo laat het de gebruiker toe via filters en wildcards de gewenste genotype-eigenschappen en samples te specifi\"eren.
 
 \subsection{Sample filters/wildcards} 
-In SQL \texttt{SELECT}-statements kan de gebruiker met een filter van de vorm column.sample of een wilcard van de vorm (column).(wildcard) uitdrukken welke genotype-kolommen van welke samples hij/zij wilt zien. Wanneer de gebruiker ge\"interesseerd is in bijvoorbeeld het genotype van Jan, wordt dit:\\
+In SQL \texttt{SELECT}-statements kan de gebruiker met een filter van de vorm column.sample of een wilcard van de vorm (column).(wildcard) uitdrukken welke genotype-kolommen van welke samples hij/zij wilt zien. Wanneer de gebruiker ge\"interesseerd is in bijvoorbeeld het genotype van Jan, wordt dit:\\\\
 \texttt{SELECT gt\_types.Jan FROM variants}\\\\
 Als de gebruiker de diepte van de genotypes alle samples van vrouwelijke proefpersonen wil zien, wordt dit:\\\\
-\texttt{SELECT (gt\_depths).(sex = 'female')}.\\
+\texttt{SELECT (gt\_depths).(sex = 'female')}.\\\\
 GEMINI vertaalt de wildcard automatisch naar een query op de \texttt{samples}-tabel, en kan vervolgens voor alle samples die aan de voorwaarden voldoen, de waarde uit de gevraagde kolom tonen.
 
 \subsection{Genotype filters/wildcards}
@@ -50,7 +50,7 @@ Om beperkingen op te leggen aan de variants waarin hij ge\"interesseerd is, kan 
 
 \noindent\texttt{\$ gemini query -q} "\texttt{SELECT * FROM variants}"\textbackslash \\\texttt{--gt-filter }"\texttt{gt\_types.John == HET and gt\_types.Alex != HET}"\\
 
-\noindent Vaak is het de bedoeling om eenzelfde beperking op te leggen aan meerdere samples. Op bovenstaande manier wordt dit voor een toenemend aantal samples al snel pijnlijk veel en foutgevoelig werk. Om dit te verhinderen, zijn er genotype wildcards van volgend formaat:\\ 
+\noindent Vaak is het de bedoeling om eenzelfde beperking op te leggen aan meerdere samples. Op bovenstaande manier wordt dit voor een toenemend aantal samples al snel monnikenwerk. Om dit te verhinderen, zijn er genotype wildcards van volgend formaat:\\ 
 \texttt{(column).(sample\_wildcard).(gt\_wildcard\_rule).(rule\_enforcement)}.
 \begin{description}
 \item[column] Staat voor de genotype kolom waarop de beperking slaat.
@@ -59,22 +59,19 @@ Om beperkingen op te leggen aan de variants waarin hij ge\"interesseerd is, kan 
 \item[rule\_enforcement] Duidt aan hoeveel van de geselecteerde samples aan de opgelegde gt\_wildcard\_rule moeten voldoen. Dit kan \texttt{all, any, none, of count <comparison>} zijn.
 \end{description}
 
-\noindent Alle variants opvragen waarvoor alle mannelijke proefpersonen heterozygoot zijn, gaat bijvoorbeeld met:
-
-\noindent\texttt{\$ gemini query -q "}\texttt{SELECT * FROM variants"}\textbackslash \\
+\noindent Alle variants opvragen waarvoor alle mannelijke proefpersonen heterozygoot zijn, gaat bijvoorbeeld met:\\\\
+\texttt{\$ gemini query -q "}\texttt{SELECT * FROM variants"}\textbackslash \\
 \texttt{--gt-filter" }\texttt{(gt\_types).(sex = 'male').(=HET).(all)"}\\
 
-\noindent Alle variants opvragen waarvoor minstens 1 bruinharig individu een genotype van diepte minstens 100 heeft, met:
-
-\noindent\texttt{\$ gemini query -q "}\texttt{SELECT * FROM variants"}\textbackslash \\
+\noindent Alle variants opvragen waarvoor minstens 1 bruinharig individu een genotype van diepte minstens 100 heeft, met:\\\\
+\texttt{\$ gemini query -q "}\texttt{SELECT * FROM variants"}\textbackslash \\
 \texttt{--gt-filter" }\texttt{(gt\_depths).(hair\_colour = 'brown').(>=100).(any)"}\\
 
-\noindent Alle variants opvragen waarvoor minder dan 10 individu\"en een genotype met diepte minder dan 50 hebben, met:
-
-\noindent\texttt{\$ gemini query -q "}\texttt{SELECT * FROM variants"}\textbackslash \\
+\noindent Alle variants opvragen waarvoor minder dan 10 individu\"en een genotype met diepte minder dan 50 hebben, met:\\\\
+\texttt{\$ gemini query -q "}\texttt{SELECT * FROM variants"}\textbackslash \\
 \texttt{--gt-filter" }\texttt{(gt\_depths).(*).(=HET).(count < 10)"}\\
 
-\noindent Al de bovenstaande filters kunnen met elkaar gecombineerd worden, evenals met gewone WHERE-clausules op de andere kolommen van de variants-tabel.
+\noindent Al de bovenstaande filters kunnen met elkaar gecombineerd worden, evenals met gewone \texttt{WHERE}-clausules op de andere kolommen van de variants-tabel.
 
 \subsection{\texttt{--show-samples}}
 

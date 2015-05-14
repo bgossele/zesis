@@ -55,10 +55,12 @@ Het belangrijkste vraagstuk is hoe de genotype-kolommen uit het oorspronkelijke 
 Het nadeel is echter dat het onmogelijk is ad-hoc queries te defini\"eren op genotypes van willekeurige eigenschappen zonder het gebruik van secundaire indices. Elke query die in een \texttt{WHERE}-clausule andere kolommen of samples betrekt, vereist om de hierboven beschreven redenen een andere keuze van de primary key om effici\"ent de juiste rijen te kunnen opzoeken.
 
 \begin{table}[!htbp]
+\begin{adjustwidth}{-0.75in}{}
 \begin{tabular}{@{}|l|l|l|l|l|l|l|l|l|l|@{}}
 \toprule
 \color{green} variant\_id & ref & alt & \ldots & gt\_type\_alex & gt\_type\_john & \ldots & gt\_depth\_alex & gt\_depth\_john & \ldots \\ \bottomrule
 \end{tabular}
+\end{adjustwidth}
 \end{table}
 
 \item \textbf{\texttt{genotype}-tabellen} Een derde optie is een \texttt{variants}-tabel zonder genotype-informatie, gecombineerd met een tabel voor elke eigenschap van de genotypes van de samples, met een rij voor elke \texttt{(variant, sample)}. Bijvoorbeeld:\\
