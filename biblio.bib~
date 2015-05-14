@@ -581,7 +581,7 @@ note = {Accessed on 02/12/2014}
 @MISC{vcf_format,
 	title = {The Variant Call Format (VCF) Version 4.2 Specification},
 	year = {2015},
-	author = {SAMtools},
+	author = {Leah Eisenstadt},
 	howpublished={\url{http://samtools.github.io/hts-specs/VCFv4.2.pdf}},
 	note = {Accessed on 14/05/2015}
 }
