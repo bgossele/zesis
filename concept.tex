@@ -41,7 +41,7 @@ De belangrijkste queries die ondersteund moeten worden in GEMINI, zijn de volgen
 \item Queries op \texttt{JOIN}s van tabellen. De documentatie van GEMINI heeft het in dit geval vooral over \texttt{JOIN}s tussen enerzijds de \texttt{gene\_detailed}- of \texttt{gene\_summary}-tabellen en anderzijds de \texttt{variants}- of \texttt{variant\_impacts}-tabellen \cite{gemini_joins}.
 \end{itemize}
 Deze drie vraagstukken komen achtereenvolgens aan bod in deze sectie.\\\\
-In deze sectie komen meerdere schematische voorstellingen van databanktabellen voor. Om de leesbaarheid te verhogen, zijn hierin de namen van kolommen uit de partition key steeds in het {\color{green} groen} en van kolommen uit de clustering key in het {\color{red} rood} weergegeven.
+In deze sectie komen meerdere schematische voorstellingen van databanktabellen voor. Om de leesbaarheid te verhogen, zijn hierin de namen van kolommen uit de partition key steeds in het {\color{ForestGreen} \underline{groen}} en van kolommen uit de clustering key in het {\color{red} rood} weergegeven.
 
 \subsubsection{\texttt{variants}-tabel vs. genotype-informatie}
 
@@ -58,7 +58,7 @@ Het nadeel is echter dat het onmogelijk is ad-hoc queries te defini\"eren op gen
 \begin{adjustwidth}{-0.75in}{}
 \begin{tabular}{@{}|l|l|l|l|l|l|l|l|l|l|@{}}
 \toprule
-\color{green} variant\_id & ref & alt & \ldots & gt\_type\_alex & gt\_type\_john & \ldots & gt\_depth\_alex & gt\_depth\_john & \ldots \\ \bottomrule
+\color{ForestGreen} \underline{variant\_id} & ref & alt & \ldots & gt\_type\_alex & gt\_type\_john & \ldots & gt\_depth\_alex & gt\_depth\_john & \ldots \\ \bottomrule
 \end{tabular}
 \end{adjustwidth}
 \end{table}
@@ -72,7 +72,7 @@ Het nadeel is echter dat het onmogelijk is ad-hoc queries te defini\"eren op gen
 \begin{table}[!htbp]
 \begin{tabular}{@{}|l|l|l|@{}}
 \toprule
-\color{green} sample\_name & \color{green} genotype & \color{red} variant\_id \\ \bottomrule
+\color{ForestGreen} \underline{sample\_name} & \color{ForestGreen} \underline{genotype} & \color{red} variant\_id \\ \bottomrule
 \end{tabular}\\
 \end{table}
 
@@ -81,7 +81,7 @@ Het nadeel is echter dat het onmogelijk is ad-hoc queries te defini\"eren op gen
 \begin{table}[!htbp]
 \begin{tabular}{@{}|l|l|l|@{}}
 \toprule
-\color{green} sample\_name & \color{red} gt\_depth & \color{red} variant\_id \\ \bottomrule
+\color{ForestGreen} \underline{sample\_name} & \color{red} gt\_depth & \color{red} variant\_id \\ \bottomrule
 \end{tabular}
 \end{table}
 
@@ -108,7 +108,7 @@ Een aanpak die in beide gevallen op een voorspelbare en betrouwbare manier werkt
 \begin{table}[!htbp]
 \begin{tabular}{@{}|l|l|l|@{}}
 \toprule
-\color{green} chrom & \color{red} start & \color{red} variant\_id \\ \bottomrule
+\color{ForestGreen} \underline{chrom} & \color{red} start & \color{red} variant\_id \\ \bottomrule
 \end{tabular}
 \end{table}
 
@@ -117,7 +117,7 @@ Een aanpak die in beide gevallen op een voorspelbare en betrouwbare manier werkt
 \begin{table}[!htbp]
 \begin{tabular}{@{}|l|l|@{}}
 \toprule
-\color{green} gene & \color{red} variant\_id \\ \bottomrule
+\color{ForestGreen} \underline{gene} & \color{red} variant\_id \\ \bottomrule
 \end{tabular}
 \end{table}
 
@@ -126,7 +126,7 @@ Een aanpak die in beide gevallen op een voorspelbare en betrouwbare manier werkt
 \begin{table}[!htbp]
 \begin{tabular}{@{}|l|l|@{}}
 \toprule
-\color{green} sex & \color{red} sample\_name \\ \bottomrule
+\color{ForestGreen} \underline{sex} & \color{red} sample\_name \\ \bottomrule
 \end{tabular}
 \end{table}
 \end{itemize}
