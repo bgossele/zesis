@@ -30,22 +30,14 @@ class Basic_expression(Expression):
   
     def evaluate(self, socket, starting_set):
         
-        if len(starting_set) == 0:
-            return set()
-        
         query = "SELECT %s FROM %s" % \
             (self.SELECT_column, self.table)
         if self.where_clause != "":
             query += " WHERE %s" % self.where_clause            
         if self.can_prune() and not starting_set == "*":
-            if self.table.startswith('samples'):
-                in_clause = "','".join(starting_set)            
-                query += " AND %s IN ('%s')" % \
-                    (self.SELECT_column, in_clause)
-            else:
-                in_clause = ",".join(map(str, starting_set))            
-                query += " AND %s IN (%s)" % \
-                    (self.SELECT_column, in_clause)     
+			in_clause = ",".join(map(str, starting_set))            
+            query += " AND %s IN (%s)" % \
+				(self.SELECT_column, in_clause)     
         return rows_as_set(socket.execute(query))
     
     def can_prune(self):
@@ -62,9 +54,6 @@ class AND_expression(Expression):
         self.right = right
 
     def evaluate(self, session, starting_set):
-        
-        if len(starting_set) == 0:
-            return set()
         
         if self.right.can_prune():
             temp = self.left.evaluate(session, starting_set)
@@ -111,9 +100,7 @@ class NOT_expression(Expression):
  
     def evaluate(self, session, starting_set):
         
-        if len(starting_set) == 0:
-            return set()        
-        elif starting_set == '*':
+        if starting_set == '*':
             correct_starting_set = rows_as_set(session.execute(\
                 "SELECT %s FROM %s" % (self.SELECT_column, self.table)))
         else:
@@ -325,10 +312,8 @@ def none_query(conn, field, clause, initial_set, contact_points, keyspace):
     conn.send(results)
     conn.close()   
     
-def count_query(conn, field, clause, initial_set, contact_points, keyspace):
-    
-    cluster = Cluster(contact_points)
-    session = cluster.connect(keyspace)    
+def count_query(conn, field, clause, initial_set):
+       
     names = conn.recv()    
     results = dict()
     
@@ -340,10 +325,9 @@ def count_query(conn, field, clause, initial_set, contact_points, keyspace):
             in_clause = ",".join(map(str, initial_set))
             query += " AND variant_id IN (%s)" % in_clause      
         
-        variants = rows_as_set(session.execute(query))
+        variants = rows_as_set(execute(query))
         results = add_row_to_count_dict(results, variants)
-        
-    session.shutdown()       
+            
     conn.send(results)
     conn.close()
     

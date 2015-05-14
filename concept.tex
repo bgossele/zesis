@@ -152,6 +152,7 @@ Het inladen van de genoomdata in de GEMINI-databank is conceptueel erg eenvoudig
 Het uitvoeren van de gewoonlijke GEMINI-queries tegen een Cassandra-databank vergt enkele ingrijpende aanpassingen ten opzichte van de SQLite-versie van Cassandra. Het doel is natuurlijk deze aanpassingen zoveel mogelijk te verbergen voor de gebruiker, wat ook in grote mate gelukt is. In deze sectie komt achtereenvolgens aan bod hoe ingewikkelde queries gesplitst worden in eenvoudige subqueries, hoe de resultaten hiervan vervolgens gecombineerd worden en wat dit betekent voor de meest geavanceerde feature van GEMINI, namelijk de genotype-filter wildcards.
 
 \subsection{Splitsing in subqueries}
+\label{splitsing_subqueries_conceptueel}
 
 Zoals beschreven in \ref{cassandra_datamodel}, kan Cassandra enkel effici\"ent queries uitvoeren die beperkingen opleggen aan de kolommen in de primary key van een tabel, en dit ook slechts onder bepaalde voorwaarden. Bovendien is de enige logische operator die Cassandra ondersteunt om beperkingen te combineren, de conjunctie.\\
 Om arbitraire queries en \texttt{WHERE}-clausules te ondersteunen, kan GEMINI niet zoals in de SQLite-versie de \texttt{WHERE}-clausule zomaar onveranderd aan Cassandra doorgeven. Beschouw, ter illustratie, volgende query:\\\\

@@ -1,7 +1,7 @@
 \chapter{Inleiding}
 \label{inleiding}
 
-\section{Probleemstelling}
+\section{Algemene context}
 
 Wetenschappelijke vooruitgang heeft ervoor gezorgd dat de kost om genomen te sequencen het afgelopen decennium exponentieel gedaald is, sinds 2008 zelfs aan een hogere snelheid dan de evolutie volgens de wet van Moore \cite{wetterstrand_sequencing_cost}. Dit is duidelijk zichtbaar op de grafiek in figuur \ref{sequencing_cost}. In allerhande soorten biologisch, medisch en pharmaceutisch onderzoek worden dan ook genomen van meer en meer organismen gesequenced en dit genereert enorme hoeveelheden data. Ter illustratie: de \textit{whole genome sequencing pipeline} van het Broad Institute \cite{broad_institute}, een referentie in het veld, genereert bij het sequencen van 1 volledig menselijk genoom in de orde van 3TB aan tussentijdse data. Het eindresultaat is 50 GB gecomprimeerde data voor 1 menselijk genoom bij 50x \textit{coverage} (een maat voor de resolutie \cite{coverage_definition}). Naarmate genomen van miljoenen mensen en andere levende wezens geanalyseerd en opgeslagen worden, vereist deze evolutie steeds betere schaalbaarheid, responstijd, en parallellisering voor de opslag en verwerking van deze data.\\
 
@@ -14,9 +14,10 @@ De snel toegenomen populariteit van webdiensten als sociale netwerken zadelde we
 \label{sequencing_cost}
 \end{figure}
 
-\section{GEMINI}
+\section{Probleemstelling case study: GEMINI}
 
-Deze thesis bevat ook een case study over de opportuniteiten voor NoSQL-technologie\"en in de genoomanalysewereld. Op vraag van Janssens Pharmaceutica is het onderwerp hiervan de genoomanalysetool GEMINI (van GEnome MINIng): een software-framework voor flexibele analyse van genetische variaties in grote datasets van genomen, ontwikkeld aan de University of Utah \cite{10.1371/journal.pcbi.1003153}. GEMINI vertrekt daarbij van VCF (Variant Call Format) tekst-bestanden, laadt deze in in een database, voegt allerlei annotaties toe met bijkomende informatie van enkele vermaarde onderzoeksinstituten en biedt dan de mogelijkheid queries uit te voeren op deze databank. De huidige operationele versie van GEMINI draait op de eenvoudige SQL-databank SQLite, maar deze laat op gebied van schaalbaarheid en performantie te wensen over. De gewenste schaalbaarheid ligt in 2 dimensies: enerzijds het aantal genetische \textit{variants} in de dataset, d.w.z. stukken van genen zoals deze in het genoomsequencingproces waargenomen worden, en het aantal proefpersonen of \textit{samples} wier DNA in de dataset geanalyseerd wordt. Bij toenemend 
+Een concreet voorbeeld van genoomanalyse-infrastructuur die door de hierboven beschreven sequencing-boom tegen haar grenzen botst, is GEMINI. Op vraag van Janssen Pharmaceutica bestudeert deze thesis als case study deze genoomanalysetool. GEMINI (van GEnome MINIng) is een software-framework voor flexibele analyse van genetische variaties in grote datasets van genomen, ontwikkeld aan de University of Utah \cite{10.1371/journal.pcbi.1003153}. Deze datasets aan genomen bevatten informatie over de genetische \textit{variants} - d.w.z. stukken van genen zoals deze in het genoomsequencingproces waargenomen worden, van meerdere proefpersonen (ook: \textit{samples}). GEMINI vertrekt daarbij van VCF(Variant Call Format)-bestanden: dit zijn tekstbestanden die informatie over het gesequencete DNA van de samples bevatten, op het niveau van individuele variants. GEMINI laadt deze gegevens in in een database, voegt allerlei annotaties toe met bijkomende informatie van enkele vermaarde onderzoeksinstituten, en biedt dan de mogelijkheid queries uit te voeren op deze databank. GEMINI laat de gebruiker ook toe zelfgedefinieerde annotaties toe te voegen aan de variants. \\
+De huidige operationele versie van GEMINI draait op de eenvoudige SQL-databank SQLite, maar deze laat op gebied van schaalbaarheid en performantie te wensen over. De gewenste schaalbaarheid ligt in 2 dimensies: enerzijds het aantal variants in de dataset, en anderzijds het aantal samples wier DNA in de dataset geanalyseerd wordt. Bij toenemend 
 %TODO getal!
 aantal samples of variants duurt zowel het inladen van de genoomdata in de databank voor als het queryen tijdens effectief gebruik te lang om gebruiksvriendelijk te zijn. Het inladen van de genoomdata uit VCF-files is, enigszins contra-intu\"itief, geen eenmalige of zeldzame operatie: de huidige productieversie van GEMINI laat niet toe om na het inladen nog samples of variants toe te voegen, met als gevolg dat bij elke iteratie van een genetisch of biologisch experiment die nieuwe informatie oplevert, de volledige dataset opnieuw ingeladen dient te worden. Ook het incrementeel kunnen toevoegen van variants en samples aan de gegevensset is dus een aandachtspunt bij het onderzoek naar mogelijke verbeteringen voor GEMINI.\\
 Een eerste oplossing om de performantie te verhogen was om over te schakelen op PostgreSQL, en hiervan is intussen al met succes een eerste versie ge\"implementeerd. Het resultaat is een verhoging van de querysnelheden van 5 tot 20x, zonder verregaande optimalisaties. De verwachtingen zijn echter ook hier dat PostgreSQL op langere termijn niet zal kunnen schalen naar datasets van (honderd)duizenden genomen.\\
@@ -25,6 +26,7 @@ Naar de toekomst toe is het dus noodzakelijk uit kijken naar andere technologie\
 \section{Oplossing, contributies,...}
 
 {\color{red} TODO}
+%TODO
 
 
 

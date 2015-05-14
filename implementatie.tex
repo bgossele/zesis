@@ -13,7 +13,7 @@ De grote winst ten opzichte van de SQLite-implementatie van GEMINI is dat in het
 
 \subsection{Splitsing in subqueries}
 
-Om beslissingen zoals in het voorbeeld dynamisch te kunnen maken, is het nodig de \texttt{WHERE}-clausule te inspecteren en hieruit de benodigde hulptabellen voor de subqueries te identificeren. Om dit proces te vereenvoudigen, heb ik ervoor gekozen de query syntax licht aan te passen: beperkingen die binnen 1 hulptabel liggen, kunnen nog steeds met elkaar gecombineerd worden met het \texttt{AND}-keyword, maar beperkingen die niet binnen eenzelfde hulptabel liggen, moeten met de \texttt{\&\&, ||} of \texttt{NOT}-operatoren van elkaar gescheiden worden. Zo kan GEMINI bij het parsen van de \texttt{WHERE}-clausule deze onmiddellijk opsplitsen in subqueries en voor elk van deze subqueries de nodige hulptabel bepalen. Beschouw wederom volgende query:\\\\
+Om zoals in het voorbeeld uit \ref{splitsing_subqueries_conceptueel} dynamisch beslissingen over het splitsen in subqueries te kunnen maken, is het nodig de \texttt{WHERE}-clausule te inspecteren en hieruit de benodigde hulptabellen voor de subqueries te identificeren. Om dit proces te vereenvoudigen, hanteert deze implementatie een licht gewijzigde querysyntax: beperkingen die binnen 1 hulptabel liggen, kunnen nog steeds met elkaar gecombineerd worden met het \texttt{AND}-keyword, maar beperkingen die niet binnen eenzelfde hulptabel liggen, moeten met de \texttt{\&\&, ||} of \texttt{NOT}-operatoren van elkaar gescheiden worden. Zo kan GEMINI bij het parsen van de \texttt{WHERE}-clausule deze onmiddellijk opsplitsen in subqueries en voor elk van deze subqueries de nodige hulptabel bepalen. Beschouw wederom volgende query:\\\\
 \texttt{SELECT chrom, start, subtype FROM variants WHERE chrom = 'chromX' \\AND start > 5600 AND gene = 'gene\_A'}.\\\\
 In de aangepaste syntax wordt dit:\\\\
 \texttt{SELECT chrom, start, subtype FROM variants WHERE chrom = 'chromX' \\AND start > 5600 \&\& gene = 'gene\_A'}.\\
@@ -41,21 +41,17 @@ Bij het praktisch evalueren van \texttt{query\_expression}s komt uiteindelijk me
 \begin{itemize}
 \item Het evalueren van \texttt{Basic\_expression}s gebeurt niet zo rechtoe rechtaan als de naam doet vermoeden. De \texttt{evaluate}-functie bouwt een CQL-query op, op basis van een gegeven \texttt{WHERE}-clausule, de relevante tabel en de gevraagde kolom uit die tabel. Wanneer er een zinvolle verzameling kandidaatrijen (de \texttt{starting\_set} in onderstaand codefragment) meegegeven is, wordt deze als \texttt{IN}-clausule aan de \texttt{WHERE}-clausule toegevoegd. Zo zoekt Cassandra enkel in rijen die effectief in aanmerking komen om aan de globale query te voldoen. Een voorwaarde om deze optimalisatie te kunnen toepassen, is dat de \texttt{WHERE}-clausule geen ongelijkheidsbeperkingen mag bevatten (vandaar de \texttt{can\_prune}-functie).
 
-\lstinputlisting[language=Python,firstline=31,lastline=31]{gemini_src/query_expressions.py}
-%TODO juist formatten, binnenste if, else verstoppen
-\lstinputlisting[language=Python,firstline=36,lastline=53]{gemini_src/query_expressions.py}
+\lstinputlisting[language=Python,firstline=31,lastline=48]{gemini_src/query_expressions.py}
 
 \item Om een \texttt{AND\_expression} te evalueren is het strikt genomen nodig beide leden van de uitdrukking te evalueren en vervolgens de doorsnede te nemen van de resultaten. Als \'e\'en van de twee leden van de uitdrukking echter in staat is om dankzij een CQL \texttt{IN}-clausule enkel naar rijen te zoeken die effectief in aanmerking komen om aan de globale query te voldoen, is het mogelijk om deze operatie aan Cassandra over te laten. Als het rechterlid kan \textit{prunen}, dan kan GEMINI de resultaatverzameling van het linkerlid als \texttt{starting\_set} meegeven bij de evaluatie van het rechterlid, en omgekeerd. Wanneer geen van beide kunnen \textit{prunen}, moet GEMINI uiteraard nog steeds zelf de doorsnede berekenen.
 
-\lstinputlisting[language=Python,firstline=64,lastline=64]{gemini_src/query_expressions.py}
-\lstinputlisting[language=Python,firstline=69,lastline=77]{gemini_src/query_expressions.py}
+\lstinputlisting[language=Python,firstline=56,lastline=66]{gemini_src/query_expressions.py}
 
 \item In het geval van een \texttt{OR\_expression} is er geen andere mogelijkheid dan eenvoudigweg het linker- en rechterlid te evalueren, beide met als \texttt{starting\_set} de \texttt{starting\_set} van de \texttt{OR\_expression} zelf, en vervolgens de unie van de resultaten te berekenen.
 
 \item Ook in het geval van een \texttt{NOT\_expression} is er geen andere optie dan de \texttt{body}-uitdrukking te evalueren en vervolgens het complement van de \texttt{starting\_set} en het resultaat te bepalen. Als de gegeven \texttt{starting\_set} gelijk is aan \texttt{"*"}, d.w.z. alle rijen in de oorspronkelijke tabel, zit er ook niets anders op dan deze nog eerst allemaal op te vragen.
 
-\lstinputlisting[language=Python,firstline=112,lastline=112]{gemini_src/query_expressions.py}
-\lstinputlisting[language=Python,firstline=116,lastline=123]{gemini_src/query_expressions.py}
+\lstinputlisting[language=Python,firstline=101,lastline=110]{gemini_src/query_expressions.py}
 
 \end{itemize}
 
@@ -71,15 +67,15 @@ In dit opzicht lijkt de Cassandra-implementatie op de SQLite-implementatie, gezi
 Zoals in de conceptuele uitleg van de oplossing aangehaald, kan de evaluatie van genotype-wildcards effici\"enter verlopen door de evaluatie van de subqueries in parallel uit te voeren op meerdere processoren. Dit heb ik ook daadwerkelijk ge\"implementeerd, door introductie van een nieuw type \texttt{query\_expression}, namelijk de \texttt{GT\_wildcard\_expression}.\\
 Bij evaluatie zal deze de namen van alle samples die aan de \texttt{sample\_wildcard} voldoen verdelen over het aantal processoren dat de gebruiker meegeeft, deze elk een tussenresultaat laten berekenen, de resultaten opvragen en samenvoegen m.b.v. de gekende setalgebra. Om het werk effici\"ent over verschillende processoren te verdelen en alle benodigde informatie te communiceren, maakt de implementatie gebruik van zogenaamde subprocesses, die elk hun eigen verbinding openen met het Cassandra-cluster, en interprocess-communicatiemechanismen uit de Python \texttt{multiprocessing}-API \cite{multiprocessing}.\\
 
-\lstinputlisting[language=Python,firstline=186,lastline=210]{gemini_src/query_expressions.py}
+\lstinputlisting[language=Python,firstline=173,lastline=197]{gemini_src/query_expressions.py}
 
 \texttt{all-, any-} en \texttt{none-}wildcards vereisen voor het samenvoegen van de resultaten van de verschillende subprocesses geen grote aanpassingen aan de sequenti\"ele evaluatie-strategie van wildcards. Omdat deze oplossingswijze er zich uitstekend toe leent af te wijken van het stramien van de geneste \texttt{query\_expressions} (immers, er is maar 1 \texttt{GT\_wildcard\_expression} voor alle samples), is het makkelijker de \texttt{count}-wildcards te implementeren: elk subprocess voert subqueries uit voor de samples waarvoor het verantwoordelijk is en telt voor elke variant hoe vaak hij in de resultaatverzamelingen van de subqueries voorkomt. Deze informatie stuurt het subprocess terug naar zijn parent-process in een Python \textit{dictionary}, met een map van \texttt{variant\_id}s naar de telling.
 
-\lstinputlisting[language=Python,firstline=328,lastline=357]{gemini_src/query_expressions.py}
+\lstinputlisting[language=Python,firstline=315,lastline=341]{gemini_src/query_expressions.py}
 
 Het parent-process kan vervolgens de telling voor alle variants van alle subprocesses bij elkaar optellen, en met gebruik van de Python \texttt{eval}-functie alle variants die aan de \texttt{count}-filter voldoen, bepalen. Let wel, bij het opstellen van de uiteindelijke \textit{dictionary} met de tellingen voor de varianten, moet het parent-process voor alle varianten in de \texttt{starting\_set}, een entry voorzien, met defaultwaarde 0. Zoniet zullen varianten waarvoor geen enkele sample aan de \texttt{gt\_wildcard\_rule} voldoet, niet in het resultaat voorkomen, en \texttt{count}-filters als \texttt{(count < x), (count <= x)} (voor arbitraire, positieve \texttt{x}) of \texttt{(count == 0)}  deze varianten onterecht niet in hun resultaat weergeven.
 
-\lstinputlisting[language=Python,firstline=225,lastline=235]{gemini_src/query_expressions.py}
+\lstinputlisting[language=Python,firstline=212,lastline=222]{gemini_src/query_expressions.py}
 
 \noindent De \texttt{correct\_starting\_set} in bovenstaande code is de traditionele \texttt{starting\_set}, maar ge\"evalueerd in het geval dit de volledige verzameling varianten (dus de wildcard \texttt{"*"}) is, en gegoten in een datatype geschikt voor shared-memory access.\\
 De \texttt{invert\_count}-flag geeft aan of de \texttt{gt\_wildcard\_rule} een negatie is. Gezien Cassandra geen \texttt{!=}-clausules ondersteunt, moet GEMINI in dit geval het complement van de \texttt{gt\_wildcard\_rule} in kwestie bepalen en vervolgens de resulterende telling aftrekken van het totaal aantal samples. \\ Een eenvoudig voorbeeld: bij het evalueren van volgende wildcard \\\\ 
