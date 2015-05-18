@@ -23,10 +23,13 @@ aantal samples of variants duurt zowel het inladen van de genoomdata in de datab
 Een eerste oplossing om de performantie te verhogen was om over te schakelen op PostgreSQL, en hiervan is intussen al met succes een eerste versie ge\"implementeerd. Het resultaat is een verhoging van de querysnelheden van 5 tot 20x, zonder verregaande optimalisaties. De verwachtingen zijn echter ook hier dat PostgreSQL op langere termijn niet zal kunnen schalen naar datasets van (honderd)duizenden genomen.\\
 Naar de toekomst toe is het dus noodzakelijk uit kijken naar andere technologie\"en en types databanken om GEMINI ook bruikbaar te maken voor grootschaligere experimenten.
 
-\section{Oplossing, contributies,...}
+\section{Contributies en resultaten}
 
-{\color{red} TODO}
-%TODO
+{\color{red} Aparte sectie?}\\
+De contributies in dit eindwerk zijn drievoudig: een vergelijkende studie van 6 NoSQL- en NewSQL-systemen, een ontwerp om het datamodel en de functionaliteiten van GEMINI over te dragen van SQLite naar een NoSQL-systeem als Apache Cassandra, en een daadwerkelijk implementatie van GEMINI met een onderliggende Cassandra-database.\\
 
+{\color{red} TODO resultaten}\\
+
+Dit verslag is verder opgebouwd als volgt: een algemene introductie tot genoomanalyse (\ref{dna_dummies}) en GEMINI (\ref{gemini_beschrijving}), een literatuurstudie over NoSQL- en NewSQL-systemen (\ref{datastores_intro}), een conceptueel ontwerp van GEMINI in combinatie met een Cassandra-databank (\ref{concept}), een implementatie (\ref{implementatie}) en validatie van dit ontwerp, een bespreking van mogelijke verdere onderzoekspistes en een conclusie.
 
 
