@@ -167,11 +167,11 @@ Het uitvoeren van de gewoonlijke GEMINI-queries tegen een Cassandra-databank ver
 Zoals beschreven in \ref{cassandra_datamodel}, kan Cassandra enkel effici\"ent queries uitvoeren die beperkingen opleggen aan de kolommen in de primary key van een tabel, en dit ook slechts onder bepaalde voorwaarden. Bovendien is de enige logische operator die Cassandra ondersteunt om beperkingen te combineren, de conjunctie.\\
 Om arbitraire queries en \texttt{WHERE}-clausules te ondersteunen, kan GEMINI niet zoals in de SQLite-versie de \texttt{WHERE}-clausule zomaar onveranderd aan Cassandra doorgeven. Beschouw, ter illustratie, volgende query:\\\\
 \texttt{SELECT chrom, start, subtype FROM variants WHERE chrom = 'chromX' \\AND start > 5600 AND gene = 'gene\_A'}.\\\\
-Deze query valt uiteen in 2 subqueries: een eerste om uit de \texttt{variants\_by\_chrom\_start}-tabel alle variants op te vragen die voldoen aan de voorwaarde \texttt{chrom = 'chromX' AND start > 5600} en een tweede om uit de \texttt{variants\_by\_gene}-tabel alle variants die voldoen aan \texttt{gene = 'gene\_A'} op te vragen.\\
+Deze query valt uiteen in 2 subqueries: een eerste om uit de \texttt{variants\_by\_chrom\_start}-tabel alle variants op te vragen die voldoen aan de voorwaarde \texttt{chrom = 'chromX' AND start > 5600} en een tweede om uit de \texttt{variants\_by\_gene}-tabel alle variants die voldoen aan \texttt{gene = 'gene\_A'} op te vragen. Deze subqueries zullen uit de hulptabellen enkel de primary keys opvragen van de rijen die aan de voorwaarden voldoen, in dit geval de \texttt{variant\_id} van de variants. De overige opgevraagde kolommen, \texttt{chrom, start, subtype} moeten achteraf met deze primary keys opgehaald worden uit de \texttt{variants}-hoofdtabel.\\
 
 \subsection{Combineren subqueries}
 \label{comb_subq_concept}
-De subqueries zullen elk een verzameling rijen als resultaat opleveren. Het is dan zaak deze verzamelingen met set-operaties te combineren tot de finale verzameling rijen die aan de query voldoen. De nodige set-operatie hangt af van de oorspronkelijke query. Zo zal het eindresultaat van een conjunctie van subqueries de doorsnede van de resultaatverzamelingen van de subqueries zijn. In het geval van een disjunctie is dit de unie van de resultaatverzamelingen, en in het geval van een negatie van een subquery is dit het verschil tussen de oorspronkelijke verzameling (voor de query) en de resultaatverzameling van de query. Om bijvoorbeeld alle varianten te vinden die niet op een bepaald gen x liggen, moet het verschil bepaald worden tussen de verzameling van alle varianten en de verzameling van alle varianten die op gen x liggen. Tabel \ref{combineren_subqueries} vat dit samen voor 2 subqueries $p$ en $r$, hun respectievelijke resultaatverzamelingen $res(p)$ en $res(r)$ en een initi\"ele verzameling rijen $I$.
+De subqueries zullen elk een verzameling primary keys van rijen als resultaat opleveren. Het is dan zaak deze verzamelingen met set-operaties te combineren tot de finale verzameling primary keys van rijen die aan de query voldoen. De nodige set-operatie hangt af van de oorspronkelijke query. Zo zal het eindresultaat van een conjunctie van subqueries de doorsnede van de resultaatverzamelingen van de subqueries zijn. In het geval van een disjunctie is dit de unie van de resultaatverzamelingen, en in het geval van een negatie van een subquery is dit het verschil tussen de oorspronkelijke verzameling (voor de query) en de resultaatverzameling van de query. Om bijvoorbeeld alle varianten te vinden die niet op een bepaald gen x liggen, moet het verschil bepaald worden tussen de verzameling van alle varianten en de verzameling van alle varianten die op gen x liggen. Tabel \ref{combineren_subqueries} vat dit samen voor 2 subqueries $p$ en $r$, hun respectievelijke resultaatverzamelingen $res(p)$ en $res(r)$ en een initi\"ele verzameling rijen $I$.
 
 \begin{table}[h]
 \centering
@@ -185,6 +185,10 @@ $p$ \texttt{OR} $r$ & $res(p) \cup res(r)$    \\ \hline
 \caption{De verschillende manieren om subqueries met elkaar te combineren.}
 \label{combineren_subqueries}
 \end{table}
+
+\subsection{Ophalen finaal resultaat}
+
+Met het resultaat van de subqueries, namelijk de primary keys van alle rijen uit de oorspronkelijk gevraagde (hoofd)tabel die voldoen aan de query, is het eenvoudig het eindresultaat van de query te bepalen. Er is nog \'e\'en query nodig die voor alle rijen de gevraagde kolommen opvraagt uit de hoofdtabel. Ook hier is er een mogelijkheid om door parallellisatie het proces te versnellen: de verzameling primary keys kan over meerdere processoren verdeeld worden, die dan elk een deel van het eindresultaat voor hun rekening nemen. 
 
 \subsection{Genotype-filter wildcards}
 

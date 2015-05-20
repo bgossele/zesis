@@ -13,7 +13,6 @@ De grootste verandering ten opzichte van de SQLite-implementatie van GEMINI is d
 
 \subsection{Splitsing in subqueries}
 
-
 Om zoals in het voorbeeld uit \ref{splitsing_subqueries_conceptueel} dynamisch beslissingen over het splitsen in subqueries te kunnen maken, is het nodig de \texttt{WHERE}-clausule te inspecteren en hieruit de benodigde hulptabellen voor de subqueries te identificeren. Om dit proces te vereenvoudigen, hanteert deze implementatie een licht gewijzigde querysyntax: beperkingen die binnen 1 hulptabel liggen, kunnen nog steeds met elkaar gecombineerd worden met het \texttt{AND}-keyword, maar beperkingen die niet binnen eenzelfde hulptabel liggen, moeten met de \texttt{\&\&, ||} of \texttt{NOT}-operatoren van elkaar gescheiden worden. Zo kan GEMINI bij het parsen van de \texttt{WHERE}-clausule deze onmiddellijk opsplitsen in subqueries en voor elk van deze subqueries de nodige hulptabel bepalen. Beschouw wederom volgende query:\\\\
 \texttt{SELECT chrom, start, subtype FROM variants WHERE chrom = 'chromX' \\AND start > 5600 AND gene = 'gene\_A'}.\\\\
 In de aangepaste syntax wordt dit:\\\\
@@ -56,7 +55,11 @@ Bij het praktisch evalueren van \texttt{query\_expression}s komt uiteindelijk me
 
 \end{itemize}
 
-Een optimalisatie die voor alle \texttt{query\_expressions} geldt is dat in het geval van een lege \texttt{starting\_set}, GEMINI de hele evaluatie kan overslaan. Dit bespaart een overtollige round-trip naar de Cassandra-databank. Voor alle soorten \texttt{query\_expressions} behalve \texttt{Basic\_expression} geldt ook dat ze kunnen \textit{prunen}, ongeacht de aard van hun subqueries. In het geval dat hun subqueries een \texttt{Basic\_expression} bevatten die niet kan \textit{prunen}, zal de subquery in kwestie dit zelf afhandelen bij de evaluatie.
+Een optimalisatie die voor alle \texttt{query\_expressions} geldt is dat in het geval van een lege \texttt{starting\_set}, GEMINI de hele evaluatie kan overslaan. Dit bespaart een overtollige round-trip naar de Cassandra-databank. Voor alle soorten \texttt{query\_expressions} behalve de \texttt{Basic\_expression} geldt ook dat ze kunnen \textit{prunen}, ongeacht de aard van hun subqueries. In het geval dat hun subqueries een \texttt{Basic\_expression} bevatten die niet kan \textit{prunen}, zal de subquery in kwestie dit zelf afhandelen bij de evaluatie.
+
+\subsection{Ophalen finaal resultaat}
+
+Eens de primary keys van de rijen gekend zijn die voldoen aan de query, rest er enkel nog de gevraagde kolommen uit de hoofdtabel op te vragen uit de hoofdtabel. Voor deze laatste query op de hoofdtabel gebruikt onze implementatie de CQL \texttt{IN}-clausule om de primary keys te  specifi\"eren. Omdat een GEMINI-query al snel meerdere tienduizenden rijen oplevert, is het niet aangeraden die allemaal in \'e\'en gigantische \texttt{IN}-clausule op te vragen, om timeouts te vermijden. Het is dus zaak de verzameling primary keys in kleinere batches op te splitsen. Die batches kunnen dan ook over meerdere processoren verdeeld worden om zo een hogere leesthroughput te bereiken. Het enige nadeel van de parallellisatie is dat de verschillende processen niet meer effici\"ent naar eenzelfde output kunnen schrijven. Onze implementatie laat elke processor naar een apart bestand schrijven, die dan achteraf eventueel met elkaar geconcateneerd kunnen worden.
 
 \subsection{Genotype-filter wildcards}
 \label{gt_wildcards}
