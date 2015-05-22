@@ -29,11 +29,9 @@ Een belangrijke troef van GEMINI en z'n datamodel is de flexibiliteit die het la
 
 Figuur \ref{gemini_schema_pic} schetst een overzicht van de structuur van GEMINI.
 
-\newpage
 \section{Inladen}
 \label{loading_origineel}
 Het inladen van de data uit VCF-bestanden is een computationeel intensieve operatie, enerzijds omwille van de enorme grootte van deze bestanden, en anderzijds omdat alle variants geannoteerd moeten worden. Om het proces te versnellen, biedt GEMINI de mogelijkheid het werk te paralleliseren door het VCF-bestand de comprimeren, op het bestaande bestand een index te defini\"eren en zo het werk te verdelen. Dit kan over meerdere processoren binnen 1 computer zijn, maar via de IPython-interface ook over volledige clusters van computers \cite{PER-GRA:2007}.\\
-
 
 \begin{figure}[!h]
 \includegraphics[width=\textwidth,keepaspectratio]{load_schema}
@@ -41,16 +39,14 @@ Het inladen van de data uit VCF-bestanden is een computationeel intensieve opera
 \label{load_schema}
 \end{figure}
 
-Het inladen van genoomdata in GEMINI gebeurt in vier opeenvolgende stappen. De eerste en de laatste lopen op \'e\'en processor in de hoofd-thread van GEMINI, stappen 2 en 3 kunnen allebei op meerdere processoren tegelijkertijd lopen. 
-\begin{itemize}
+\noindent Het inladen van genoomdata in GEMINI verloopt in vier opeenvolgende stappen. De eerste en de laatste lopen op \'e\'en processor in de hoofd-thread van GEMINI, stappen 2 en 3 kunnen allebei op meerdere processoren tegelijkertijd lopen. Figuur \ref{load_schema} vat het proces samen.
+\begin{enumerate}
 \item In de eerste van de vier stappen controleert GEMINI de input-files en splitst deze over het aantal door de gebruiker gespecifieerde processoren. Met behulp van de bgzip \cite{bgzip} en grabix \cite{grabix} tools splitst GEMINI de meegegeven VCF-file in blokken, comprimeert die en definieert er vervolgens een index op. Elke processor krijgt zo'n blok toegewezen en werkt hiermee verder in stappen 2 - 3. De overige input (i.e. de PED-file), verdeelt GEMINI niet. Omdat het aantal samples in de PED-file vaak vele malen kleiner is dan het aantal variants in de VCF-file, is het inladen van de \texttt{samples}-tabel verwaarloosbaar vergeleken met het inladen en annoteren van de \texttt{variants}-tabel.
 \item In stap 2 initialiseert GEMINI de databank, maakt de nodige tabellen aan en laadt de samples-informatie in. GEMINI haalt de namen van de samples uit de VCF-file en vult die aan met informatie uit de PED-file. Indien er geen PED-file voorhanden is, initialiseert GEMINI de \texttt{samples}-tabel met default-waarden voor de kolommen zoals \texttt{sex} en \texttt{phenotype}. Indien het inladen op meerdere processoren verloopt, cre\"eert elke processor een eigen databank en voert hierin de sample-informatie in.
 \item In stap 3 voert GEMINI de variants in in de databank. GEMINI haalt de variants \'e\'en voor \'e\'en uit de VCF-file, annoteert ze met informatie uit de geselecteerde annotatiebronnen en voegt ze toe aan de \texttt{variants}-tabel. Eens de \texttt{variants}-tabel volledig gevuld is, indexeert GEMINI de tabellen in de databank. In het parallelle scenario werkt elke processor in deze stap op zijn eigen deel van de input VCF-file.
 \item Stap vier is enkel nodig wanneer de gegevens met meerdere processoren ingeladen zijn. Alle processoren hebben immers een eigen SQLite-database aangemaakt en die moeten nog allemaal samengevoegd worden tot \'e\'en geheel. Dit gebeurt dan ook in stap 4.\\\\
-\end{itemize}
+\end{enumerate}
 
-
-\newpage
 \section{Querying}
 
 GEMINI laat de gebruiker toe de opgeslagen genoomdata te doorzoeken. Enerzijds via gewone SQL-queries, maar omdat het onderzoeken van individuele genotypes van cruciaal belang is in het onderzoek naar ziektes en SQL standaard niet de individuele genotypes in array-kolommen kan opvragen, biedt GEMINI bovendien een verrijkte SQL-syntax.\\
