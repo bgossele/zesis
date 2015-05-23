@@ -2,7 +2,7 @@
 
 \section{Functionele vereisten: testing}
 
-Onze implementatie van GEMINI in combinatie met Cassandra ondersteunt de belangrijkste features van GEMINI (zie \ref{gemini_beschrijving}, op een paar uitzonderingen na:
+Onze implementatie van GEMINI in combinatie met Cassandra ondersteunt de belangrijkste features van GEMINI (zie \ref{gemini_beschrijving}), op een paar uitzonderingen na:
 \begin{itemize}
 \item Inladen genoominformatie: GEMINI met Cassandra ondersteunt dezelfde input (i.e. VCF-, PED-, en annotatiefiles) als GEMINI met SQLite. Enkel door de gebruiker zelf gedefinieerde annotatiebestanden zijn nog niet ondersteund, maar dit is perfect analoog met de voorgedefinieerde bestanden en werd slechts uit tijdgebrek niet ge\"implementeerd.
 \item Querying van genoominformatie: GEMINI met Cassandra behoudt de query-functionaliteit van de SQLite-implementatie, inclusief de uitgebreide SQL-syntax zoals genotype-filters en -wildcards, sample-wildcards. De enige soort queries die onze implementatie niet biedt, zijn pure range-queries, zoals:
@@ -15,5 +15,20 @@ Zoals eerder beschreven in \ref{cassandra_datamodel} laat het datamodel van Cass
 
 Dankzij de uitgebreide verzameling unit-tests van GEMINI hebben we de laad- en queryfunctionaliteiten ook grondig kunnen testen en het correct functioneren van onze implementatie kunnen bewijzen.
 
-
 \section{Niet-functionele vereisten: benchmarking}
+
+Gezien onze implementatie de gewenste functionaliteit biedt, rest nog de vraag of ze ook, zoals beoogd, beter schaalt naar grote genoomdatasets. Om dit te evalueren hebben we onze versie van GEMINI onderworpen aan een reeks benchmarkingtests en vervolgens de executietijd van zowel het inladen als doorzoeken van genoominformatie met GEMINI gemeten. Ter vergelijking hebben we ook de prestaties van de SQLite-versie van GEMINI gemeten voor dezelfde tests.
+
+\subsection{Testomgeving}
+
+Voor de experimenten gebruikten we de publiek beschikbare genoomdata van het 1000 Genome project \cite{10002012integrated}. Die datasets bevatten enkel de VCF-files, niet de sample-informatie van de proefpersonen. Om toch de hele featureset te kunnen testen, hebben we willekeurig een geslacht en fenotype aan de samples toegekend. Specifiek hebben we 5 verschillende VCF-files (in reeds gezipte toestand, vandaar de bestandsextensie) gebruikt:
+\begin{itemize}
+\item \texttt{s\_1092.vcf.gz} van 1.8 GB met 494328 variants van 1092 samples.
+\item \texttt{m\_1092.vcf.gz} van 3.0 GB met 855166 variants van 1092 samples.
+\item \texttt{l\_1092.vcf.gz} van 6.7 GB met 1882663 variants van 1092 samples.
+\item \texttt{xl\_1092.vcf.gz} van 11.8 GB met 3307592 variants van 1092 samples.
+\item \texttt{s\_2054.vcf.gz} van 1.2 GB met ? variants van 2054 samples.
+\end{itemize}
+
+De experimenten hebben we uitgevoerd op het cluster van het lab, bestaande uit nodes met elk 2 Intel X5660-processoren (6 cores, 12 threads, dus 12 cores en 24 threads per node), 96 GB RAM en 500 GB schijfruimte. GEMINI met SQLite draaide steeds in zijn geheel op 1 zo'n node, GEMINI met Cassandra hebben we afhankelijk van experiment tot experiment op 1 of 2 nodes uitgevoerd, met daarnaast een Cassandra-cluster dat draaide op 3 tot 10 nodes, weer afhankelijk van het experiment.
+
