@@ -1,0 +1,19 @@
+\chapter{Evaluatie}
+
+\section{Functionele vereisten: testing}
+
+Onze implementatie van GEMINI in combinatie met Cassandra ondersteunt de belangrijkste features van GEMINI (zie \ref{gemini_beschrijving}, op een paar uitzonderingen na:
+\begin{itemize}
+\item Inladen genoominformatie: GEMINI met Cassandra ondersteunt dezelfde input (i.e. VCF-, PED-, en annotatiefiles) als GEMINI met SQLite. Enkel door de gebruiker zelf gedefinieerde annotatiebestanden zijn nog niet ondersteund, maar dit is perfect analoog met de voorgedefinieerde bestanden en werd slechts uit tijdgebrek niet ge\"implementeerd.
+\item Querying van genoominformatie: GEMINI met Cassandra behoudt de query-functionaliteit van de SQLite-implementatie, inclusief de uitgebreide SQL-syntax zoals genotype-filters en -wildcards, sample-wildcards. De enige soort queries die onze implementatie niet biedt, zijn pure range-queries, zoals:
+
+\texttt{SELECT * FROM variants WHERE start > 123456}
+
+Zoals eerder beschreven in \ref{cassandra_datamodel} laat het datamodel van Cassandra dit niet toe: het is op basis van de query onmogelijk een primary key te bepalen van de rijen in het resultaat om zo een set opeenvolgende rijen uit de tabel in kwestie op te vragen.
+\item Voorts biedt GEMINI nog vele andere tools voor zeer specifieke genetische onderzoeksdoeleinden. We hebben die niet nader bestudeerd, maar gezien ze allen voortbouwen op de queryfunctionaliteit, hebben we de basis er wel voor gelegd.
+\end{itemize}
+
+Dankzij de uitgebreide verzameling unit-tests van GEMINI hebben we de laad- en queryfunctionaliteiten ook grondig kunnen testen en het correct functioneren van onze implementatie kunnen bewijzen.
+
+
+\section{Niet-functionele vereisten: benchmarking}
