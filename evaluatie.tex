@@ -27,8 +27,29 @@ Voor de experimenten gebruikten we de publiek beschikbare genoomdata van het 100
 \item \texttt{m\_1092.vcf.gz} van 3.0 GB met 855166 variants van 1092 samples.
 \item \texttt{l\_1092.vcf.gz} van 6.7 GB met 1882663 variants van 1092 samples.
 \item \texttt{xl\_1092.vcf.gz} van 11.8 GB met 3307592 variants van 1092 samples.
-\item \texttt{s\_2054.vcf.gz} van 1.2 GB met ? variants van 2054 samples.
+\item \texttt{s\_2504.vcf.gz} van 1.2 GB met 7081600 variants van 2504 samples.
 \end{itemize}
 
 De experimenten hebben we uitgevoerd op het cluster van het lab, bestaande uit nodes met elk 2 Intel X5660-processoren (6 cores, 12 threads, dus 12 cores en 24 threads per node), 96 GB RAM en 500 GB schijfruimte. GEMINI met SQLite draaide steeds in zijn geheel op 1 zo'n node, GEMINI met Cassandra hebben we afhankelijk van experiment tot experiment op 1 of 2 nodes uitgevoerd, met daarnaast een Cassandra-cluster dat draaide op 3 tot 10 nodes, weer afhankelijk van het experiment.
+
+\subsection*{Structuur}
+
+In de volgende paragraaf zullen we \'e\'en voor \'e\'en de experimenten en hun resultaten bespreken, te beginnen met de performantietesten van het inladen van gegevens, en vervolgens de queries. We zullen daarbij deze structuur hanteren:
+\begin{enumerate}
+\item Opzet van het experiment. Wat meet het experiment precies?
+\item Omstandigheden: precieze input, commando, gebruikte infrastructuur.
+\item Resultaten
+\item Reflectie
+\end{enumerate}
+
+\subsection{Experiment 1: \texttt{gemini load} met Cassandra vs. SQLite}
+\label{exp1}
+\subsection{Experiment 2: Schaalbaarheid \texttt{gemini load} met grootte Cassandra-cluster}
+\label{exp2}
+\subsection{Experiment 3: \texttt{gemini query} met Cassandra vs. SQLite}
+\label{exp3}
+\subsection{Experiment 4: Schaalbaarheid \texttt{gemini query} met grootte Cassandra-cluster}
+\label{exp4}
+\subsection{Experiment 5: Schaalbaarheid \texttt{gemini query} bij parallellisatie GEMINI}
+\label{exp5}
 
