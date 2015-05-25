@@ -48,6 +48,57 @@ In de volgende paragraaf zullen we \'e\'en voor \'e\'en de experimenten en hun r
 \label{exp2}
 \subsection{Experiment 3: \texttt{gemini query} met Cassandra vs. SQLite}
 \label{exp3}
+
+\subsubsection{Opzet}
+Het doel van dit experiment is de executietijd van verschillende relevante queries in GEMINI te vergelijken van de Cassandra- en SQLite-implementaties. Daarvoor hebben we 7 queries geselecteerd die de volledige queryingfunctionaliteit van GEMINI bestrijken en bovendien representatief zijn voor de queries die biologen in GEMINI uitvoeren. De gebruikte queries zijn gebaseerd op de documentatie van GEMINI en hun relevantie is afgetoetst bij onze contactpersoon bij Janssen Pharmaceutica.
+
+\subsubsection{Omstandigheden}
+
+\begin{enumerate}
+\item \textbf{Query 1} Deze query dient om de performantie van eenvoudige queries op de kolommen van een tabel zoals de \texttt{variants}-tabel te meten.
+
+\begin{adjustwidth}{-1.0in}{}
+\lstinputlisting[language=sh,firstline=1,lastline=3]{gemini_src/benchmarking_queries.sh}
+\end{adjustwidth}
+
+\item \textbf{Query 2} Deze query dient om de performantie van een eenvoudige genotype-filter te meten, met de disjuncte combinatie van voorwaarden op het genotype van 2 proefpersonen.
+
+\begin{adjustwidth}{-1.0in}{}
+\lstinputlisting[language=sh,firstline=5,lastline=6]{gemini_src/benchmarking_queries.sh}
+\end{adjustwidth}
+
+\item \textbf{Query 3} Deze query dient om de performantie van een eenvoudige genotype-filter te meten, met de conjuncte combinatie van voorwaarden op het genotype van 2 proefpersonen.
+
+\begin{adjustwidth}{-1.0in}{}
+\lstinputlisting[language=sh,firstline=8,lastline=9]{gemini_src/benchmarking_queries.sh}
+\end{adjustwidth}
+
+\item \textbf{Query 4} Deze query dient om de performantie van een eenvoudige genotype-filter te meten, met de negatie van een voorwaarde op het genotype van 1 sample.
+
+\begin{adjustwidth}{-1.0in}{}
+\lstinputlisting[language=sh,firstline=11,lastline=12]{gemini_src/benchmarking_queries.sh}
+\end{adjustwidth}
+
+\item \textbf{Query 5} Deze query dient om de performantie van een eenvoudige genotype-wildcard te meten, die alle variants zoekt waarvoor alle geaffecteerde (fenotype = 2) samples niet homozygoot voor het referentie-allel zijn.
+
+\begin{adjustwidth}{-1.0in}{}
+\lstinputlisting[language=sh,firstline=14,lastline=15]{gemini_src/benchmarking_queries.sh}
+\end{adjustwidth}
+
+\item \textbf{Query 6} Deze query dient om de performantie van een combinatie van genotype-wildcards te meten, die alle variants zoekt waarvoor alle geaffecteerde (fenotype = 2) samples wel homozygoot voor het referentie-allel zijn en bovendien de depth van de variant call voldoende hoog is.
+
+\begin{adjustwidth}{-1.0in}{}
+\lstinputlisting[language=sh,firstline=17,lastline=19]{gemini_src/benchmarking_queries.sh}
+\end{adjustwidth}
+
+\item \textbf{Query 7} Deze query dient om de performantie van een combinatie van genotype-wildcards te meten, die alle variants zoekt waarvoor alle geaffecteerde (fenotype = 2) samples niet homozygoot voor het referentie-allel zijn en bovendien de depth van de variant call voor maximum 9 samples lager dan 20 is.
+
+\begin{adjustwidth}{-1.0in}{}
+\lstinputlisting[language=sh,firstline=21,lastline=23]{gemini_src/benchmarking_queries.sh}
+\end{adjustwidth}
+
+\end{enumerate}
+
 \subsection{Experiment 4: Schaalbaarheid \texttt{gemini query} met grootte Cassandra-cluster}
 \label{exp4}
 \subsection{Experiment 5: Schaalbaarheid \texttt{gemini query} bij parallellisatie GEMINI}
