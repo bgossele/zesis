@@ -12,14 +12,14 @@
 	               --gt-filter "gt_types.HG00239 != HET" 
 
 	gemini query -q "SELECT chrom, start, end, ref, alt, gene FROM variants" \
-	               --gt-filter "[gt_types].[phenotype=='2'].[!=HOM_REF].[all]" 
+	               --gt-filter "[gt_types].[phenotype=='2'].[!= HOM_REF].[all]" 
 	
 	gemini query -q "SELECT chrom, start, end, ref, alt, gene FROM variants" \
-	               --gt-filter "[gt_types].[phenotype=='2'].[==HOM_REF].[all] && \
+	               --gt-filter "[gt_types].[phenotype=='2'].[== HOM_REF].[all] && \
 	                            	[gt_depths].[phenotype=='2'].[>=20].[all]" 
 
 	gemini query -q "SELECT chrom, start, end, ref, alt, gene FROM variants" \
 	               --gt-filter "[gt_depths].[phenotype=='2'].[<10].[count <= 20] && \
-	               			[gt_types].[phenotype=='2'].[!=HOM_REF].[all]" 
+	               			[gt_types].[phenotype=='2'].[!= HOM_REF].[all]" 
 
 
