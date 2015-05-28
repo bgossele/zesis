@@ -49,7 +49,7 @@ Bij het praktisch evalueren van \texttt{query\_expression}s komt uiteindelijk me
 
 \item In het geval van een \texttt{OR\_expression} is er geen andere mogelijkheid dan eenvoudigweg het linker- en rechterlid te evalueren, beide met als \texttt{starting\_set} de \texttt{starting\_set} van de \texttt{OR\_expression} zelf, en vervolgens de unie van de resultaten te berekenen.
 
-\item Ook in het geval van een \texttt{NOT\_expression} is er geen andere optie dan de \texttt{body}-uitdrukking te evalueren en vervolgens het complement van de \texttt{starting\_set} en het resultaat te bepalen. Als de gegeven \texttt{starting\_set} gelijk is aan \texttt{"*"}, d.w.z. alle rijen in de oorspronkelijke tabel, zit er ook niets anders op dan die nog eerst allemaal op te vragen.
+\item Ook in het geval van een \texttt{NOT\_expression} is er geen andere optie dan de \texttt{body}-uitdrukking te evalueren en vervolgens het complement van de \texttt{starting\_set} en het resultaat te bepalen. Als de gegeven \texttt{starting\_set} gelijk is aan \texttt{"*"}, d.w.z. alle rijen in de oorspronkelijke tabel, zit er ook niets anders op dan die nog eerst allemaal op te vragen. Dit kan, gezien het grote aantal rijen, een zeer kostelijke operatie zijn. De implementatie maakt er echter nuttig gebruik van dat de primary key van de \texttt{variants}-tabel, \texttt{variant\_id}, een natuurlijk getal is uit de verzameling $[1..N]$ (met $N$ het aantal variants). Zo kan GEMINI gewoon het totaal aantal variants opvragen en dan zelf alle \texttt{variant\_id}s genereren zonder die allemaal uit Cassandra te hoeven opvragen.
 
 \lstinputlisting[language=Python,firstline=101,lastline=110]{gemini_src/query_expressions.py}
 

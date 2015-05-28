@@ -77,7 +77,7 @@ We hebben de genoomdata uit de \texttt{s\_1092.vcf.gz} en \texttt{m\_1092.vcf.gz
 \cmidrule(l){1-4}
 \multicolumn{1}{|l|}{\textbf{Dataset}}  & \multicolumn{1}{l|}{\textbf{\texttt{INSERT variants} [s]}} & \multicolumn{1}{l|}{\textbf{\texttt{INSERT genotypes} [s]}} & \multicolumn{1}{l|}{\textbf{Tot. duur batch [s]}}             \\ \midrule
 \multicolumn{1}{|l|}{\textbf{\texttt{s\_1092.vcf.gz}}} & \multicolumn{1}{l|}{$2.06 \pm 1.19$} & \multicolumn{1}{l|}{$45.23 \pm 4.10$}   & \multicolumn{1}{l|}{$50.91 \pm 4.36$}\\
-\multicolumn{1}{|l|}{\textbf{\texttt{m\_1092.vcf.gz}}} & \multicolumn{1}{l|}{$2.29 \pm 0.53$} & \multicolumn{1}{l|}{$45.50 \pm 3.52$}     &  \multicolumn{1}{l|}{$51.42 \pm 3.57$}  \\
+\multicolumn{1}{|l|}{\textbf{\texttt{m\_1092.vcf.gz}}} & \multicolumn{1}{l|}{$2.22 \pm 0.61$} & \multicolumn{1}{l|}{$45.70 \pm 3.80$}     &  \multicolumn{1}{l|}{$51.55 \pm 3.83$}  \\
 \multicolumn{1}{|l|}{\textbf{\texttt{l\_1092.vcf.gz}}} & \multicolumn{1}{l|}{$2.44 \pm 1.26$} & \multicolumn{1}{l|}{$46.95 \pm 4.46$}     &  \multicolumn{1}{l|}{$52.92 \pm 4.55$}  \\
 \bottomrule
 \end{tabular}
@@ -132,7 +132,7 @@ Het doel van dit experiment is de executietijd van verschillende relevante queri
 
 \subsubsection{Omstandigheden}
 
-We hebben de runtime van onderstaande 7 queries gemeten op de \texttt{s\_1092.vcf}- en \texttt{m\_1092.vcf}-datasets, enerzijds op een Cassandra-cluster met 9 nodes en replicatiefactor 3 en anderzijds in SQLite. Onze implementatie van GEMINI hebben we alle 24 beschikbare threads op \'e\'en node laten gebruiken. Voor de Cassandra-versie van GEMINI hebben we zowel gemeten hoe lang het uitvoeren van de subqueries als het totale proces duurt, voor de SQLite-versie enkel de totale duur.
+We hebben de runtime van onderstaande 8 queries gemeten op de \texttt{s\_1092.vcf}- en \texttt{m\_1092.vcf}-datasets, enerzijds op een Cassandra-cluster met 9 nodes en replicatiefactor 3 en anderzijds in SQLite. Onze implementatie van GEMINI hebben we alle 24 beschikbare threads op \'e\'en node laten gebruiken. Voor de Cassandra-versie van GEMINI hebben we zowel gemeten hoe lang het uitvoeren van de subqueries als het totale proces duurt, voor de SQLite-versie enkel de totale duur.
 
 \begin{enumerate}
 \item \textbf{Query 1} Deze query dient om de performantie van eenvoudige queries op de kolommen van een tabel zoals de \texttt{variants}-tabel te meten.
