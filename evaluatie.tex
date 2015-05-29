@@ -213,8 +213,8 @@ We hebben de runtime van onderstaande 8 queries gemeten op de \texttt{s\_1092.vc
 \cmidrule(l){2-5}
 \multicolumn{1}{l|}{}  & \multicolumn{1}{l|}{\textbf{\# Resultaten}}               & \multicolumn{1}{l|}{\textbf{Subqueries [s]}} & \multicolumn{1}{l|}{\textbf{Totaal [s]}} & \multicolumn{1}{l|}{\textbf{Totaal [s]}} \\ \midrule
 \multicolumn{1}{|l|}{\textbf{Query 1}} & \multicolumn{1}{l|}{579823} & \multicolumn{1}{l|}{$22.12 \pm 0.54$}             & \multicolumn{1}{l|}{$742.11 \pm 6.25$}          & \multicolumn{1}{l|}{$252.40 \pm 2.19$}                         \\
-\multicolumn{1}{|l|}{\textbf{Query 4}} & \multicolumn{1}{l|}{26964} &\multicolumn{1}{l|}{$26.32 \pm 0.22$}            & \multicolumn{1}{l|}{$88.60 \pm 1.71$}            & \multicolumn{1}{l|}{\color{red} TODO}                         \\
-\multicolumn{1}{|l|}{\textbf{Query 8}} & \multicolumn{1}{l|}{3} &\multicolumn{1}{l|}{$1276.65 \pm 13.88$} & \multicolumn{1}{l|}{$1305.21 \pm 11.29$}       & \multicolumn{1}{l|}{\color{red} TODO}                                \\ 
+\multicolumn{1}{|l|}{\textbf{Query 4}} & \multicolumn{1}{l|}{26964} &\multicolumn{1}{l|}{$26.32 \pm 0.22$}            & \multicolumn{1}{l|}{$88.60 \pm 1.71$}            & \multicolumn{1}{l|}{$14553.05 \pm 73.92$}                         \\
+\multicolumn{1}{|l|}{\textbf{Query 8}} & \multicolumn{1}{l|}{3} &\multicolumn{1}{l|}{$1276.65 \pm 13.88$} & \multicolumn{1}{l|}{$1305.21 \pm 11.29$}       & \multicolumn{1}{l|}{$14611.31 \pm 71.27$}                                \\ 
 \bottomrule
 \end{tabular}
 \caption{Meetresultaten voor de executietijd van queries op de \texttt{m\_1092.vcf.gz}-dataset in Cassandra en SQLite.}
@@ -295,6 +295,18 @@ Voor dit experiment hebben we query 1 en 8 uit experiment 3 (\ref{exp3}) hergebr
 
 Voor query 1 is er een duidelijke daling van de queryduur merkbaar. Gezien de grootte van het resultaat van query 1 heeft die alle baat bij een verhoogde leesthroughput: de duur van het evalueren van de query evolueert niet met de grootte van de cluster, de duur van het ophalen van de finale 339819 rijen wel.\\
 Query 8 verloopt ook sneller bij toenemend aantal nodes in de cluster, maar het effect is niet zo drastisch als bij query 1. Van 9 naar 11 nodes is er zelfs een stijging merkbaar. De geringere stijging van de snelheid valt te verklaren door het lagere aantal (sub)queries dat gebeurt tijdens het evalueren van query 8 dan tijdens het ophalen van het resultaat van query 1. Query 8 voert 556 subqueries uit, terwijl query 1 per 50 rijen (van de 339819) een query zal uitvoeren. Dit bevestigt de hypothese dat de evaluatie van query 8 eerder CPU- dan I/O-bound is.
+
+\subsection{Experiment 6: Impact dataduplicatie}
+\label{exp6}
+
+\subsubsection{Opzet}
+Het doel van dit experiment is de impact van de dataduplicatie in het dataschema van ons ontwerp te bestuderen. Daarvoor hebben we de gebruikte schijfgrootte van de Cassandra-databanken voor enkele genoomdatasets vergeleken met de grootte van de overeenkomstige SQLite-databanken.
+
+\subsubsection{Omstandigheden}
+
+\subsubsection{Resultaten}
+
+\subsubsection{Reflectie}
 
 \section{Evaluatie: conclusie}
 
