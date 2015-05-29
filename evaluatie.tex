@@ -9,11 +9,11 @@ Onze implementatie van GEMINI in combinatie met Cassandra ondersteunt de belangr
 
 \texttt{SELECT * FROM variants WHERE start > 123456}
 
-Zoals eerder beschreven in \ref{cassandra_datamodel} laat het datamodel van Cassandra dit niet toe: het is op basis van de query onmogelijk een primary key te bepalen van de rijen in het resultaat om zo een set opeenvolgende rijen uit de tabel in kwestie op te vragen.
+Zoals eerder beschreven in \ref{cassandra_datamodel} laat het datamodel van Cassandra dit niet toe: het is op basis van de query onmogelijk een primary key te bepalen van de rijen in het resultaat om zo een set opeenvolgende rijen uit de tabel in kwestie op te vragen. Een mogelijke oplossing is om een hulptabel te defini\"eren met als partition key een kolom met beperkte kardinaliteit, zoals \texttt{chrom} (de mens heeft slechts 46 chromosomen, zie \ref{dna_dummies}) en als clustering column de kolom waarop range queries nodig zijn, in dit geval \texttt{start}. In de client code kan bovenstaande range query dan vertaald worden naar 46 range queries die voor elk chromosoom de variant binnen de bepaalde range opvragen.   
 \item Voorts biedt GEMINI nog vele andere tools voor zeer specifieke genetische onderzoeksdoeleinden. We hebben die niet nader bestudeerd, maar gezien ze allen voortbouwen op de queryfunctionaliteit, hebben we de basis er wel voor gelegd.
 \end{itemize}
 
-Dankzij de uitgebreide verzameling unit-tests van GEMINI hebben we de laad- en queryfunctionaliteiten ook grondig kunnen testen en het correct functioneren van onze implementatie kunnen bewijzen.
+Dankzij de uitgebreide verzameling unit-tests van GEMINI hebben we de laad- en queryfunctionaliteiten ook grondig kunnen testen en het correct functioneren van onze implementatie kunnen bewijzen. We hebben hiervoor 82 unit-tests uit de standaard meegeleverde unit-tests van GEMINI gebruikt, die onze implementatie allemaal doorstaat. Daarnaast hebben we de standaard unit-tests voor queries met genotype-wildcards nog herhaald met meerdere cores, om specifiek het parallellisatie-mechanisme van onze implementatie te testen. Ook deze tests waren allemaal succesvol.
 
 \section{Niet-functionele vereisten: benchmarking}
 
@@ -21,7 +21,7 @@ Gezien onze implementatie de gewenste functionaliteit biedt, rest nog de vraag o
 
 \subsection*{Testomgeving}
 
-Voor de experimenten gebruikten we de publiek beschikbare genoomdata van het 1000 Genome project \cite{10002012integrated}. Die datasets bevatten enkel de VCF-files, niet de sample-informatie van de proefpersonen. Om toch de hele featureset te kunnen testen, hebben we willekeurig een geslacht en fenotype aan de samples toegekend. Specifiek hebben we 5 verschillende VCF-files (in reeds gezipte toestand, vandaar de bestandsextensie) gebruikt:
+Voor de experimenten gebruikten we, in samenspraak met de domeinexperten van Janssen Pharmaceutica, de publiek beschikbare genoomdata van het 1000 Genome project \cite{10002012integrated}. Die datasets bevatten enkel de VCF-files, niet de sample-informatie van de proefpersonen. Om toch de hele featureset te kunnen testen, hebben we willekeurig een geslacht en fenotype aan de samples toegekend. Specifiek hebben we 5 verschillende VCF-files (in reeds gezipte toestand, vandaar de bestandsextensie) gebruikt:
 \begin{itemize}
 \item \texttt{s\_1092.vcf.gz} van 1.8 GB met 494328 variants van 1092 samples.
 \item \texttt{m\_1092.vcf.gz} van 3.0 GB met 855166 variants van 1092 samples.
@@ -30,7 +30,7 @@ Voor de experimenten gebruikten we de publiek beschikbare genoomdata van het 100
 \item \texttt{s\_2504.vcf.gz} van 1.2 GB met 7081600 variants van 2504 samples.
 \end{itemize}
 
-De experimenten hebben we uitgevoerd op het cluster van het lab, bestaande uit nodes met elk 2 Intel X5660-processoren (6 cores, 12 threads, dus 12 cores en 24 threads per node), 96 GB RAM en 500 GB schijfruimte. GEMINI met SQLite draaide steeds in zijn geheel op 1 zo'n node, GEMINI met Cassandra hebben we afhankelijk van experiment tot experiment op 1 of 2 nodes uitgevoerd, met daarnaast een Cassandra-cluster dat draaide op 3 tot 10 nodes, weer afhankelijk van het experiment.
+De experimenten hebben we uitgevoerd op de cluster van het lab, bestaande uit nodes met elk 2 Intel X5660-processoren (6 cores, 12 threads, dus 12 cores en 24 threads per node), 96 GB RAM en 500 GB schijfruimte. GEMINI met SQLite draaide steeds in zijn geheel op 1 zo'n node, GEMINI met Cassandra hebben we afhankelijk van experiment tot experiment op 1 of 2 nodes uitgevoerd, met daarnaast een Cassandra-cluster die draaide op 3 tot 10 nodes, weer afhankelijk van het experiment.
 
 \subsection*{Structuur}
 
@@ -47,7 +47,7 @@ In de volgende paragraaf zullen we \'e\'en voor \'e\'en de experimenten en hun r
 
 \subsubsection{Opzet}
 
-Het doel van dit experiment is te meten hoe snel GEMINI genoomdata kan inladen in een Cassandra-databank, en dit te vergelijken met de originele SQLite-versie van GEMINI. Van de SQLite-versie hebben we de totale tijd gemeten, evenals de tijd die GEMINI nodig heeft om de rijen in te laden in de aparte chunk-databases en de tijdsduur van het merge-proces hierna. Van onze implementatie hebben we de ook de totale tijdsduur gemeten, en bovendien elke thread pet batch van 50 variants laten loggen hoe lang het invoeren van zo'n batch duurde, om een beter zicht te krijgen op de throughput. Bovendien hebben we voor onze implementatie gemeten hoe lang specifiek het invoeren van de variants in de \texttt{variants}-tabel duurt, maar ook hoe lang het invoeren van de genotype-data in de genotype-hulptabellen (dit zijn er 4) duurt. 
+Het doel van dit experiment is te meten hoe snel GEMINI genoomdata kan inladen in een Cassandra-databank, en dit te vergelijken met de originele SQLite-versie van GEMINI. Van de SQLite-versie hebben we de totale tijd gemeten, evenals de tijd die GEMINI nodig heeft om de rijen in te laden in de aparte chunk-databases en de tijdsduur van het merge-proces hierna. Van onze implementatie hebben we de ook de totale tijdsduur gemeten, en bovendien elke thread per batch van 50 variants laten loggen hoe lang het invoeren van zo'n batch duurde, om een beter zicht te krijgen op de throughput. Bovendien hebben we voor onze implementatie gemeten hoe lang specifiek het invoeren van de variants in de \texttt{variants}-tabel duurt, maar ook hoe lang het invoeren van de genotype-data in de genotype-hulptabellen (dit zijn er 4) duurt. 
 
 \subsubsection{Omstandigheden}
 We hebben de genoomdata uit de \texttt{s\_1092.vcf.gz} en \texttt{m\_1092.vcf.gz} ingeladen in een Cassandra-cluster met 10 nodes en replicatiefactor 3. GEMINI met Cassandra maakte gebruik van 24 threads, verdeeld over 2 nodes. GEMINI met SQLite draaide op 24 threads, op \'e\'en node.
@@ -132,7 +132,7 @@ Het doel van dit experiment is de executietijd van verschillende relevante queri
 
 \subsubsection{Omstandigheden}
 
-We hebben de runtime van onderstaande 8 queries gemeten op de \texttt{s\_1092.vcf}-dataset op een Cassandra-cluster van 9 nodes met replicatiefactor 3 en van queries 1, 4 en 8 op de \texttt{m\_1092.vcf}-dataset op een Cassandra-cluster 10 nodes met replicatiefactor 3. Ter vergelijking voerden we dezelfde queries ook uit met de SQLite-versie van GEMINI. Onze implementatie van GEMINI hebben we alle 24 beschikbare threads op \'e\'en node laten gebruiken. Voor de Cassandra-versie van GEMINI hebben we zowel gemeten hoe lang het uitvoeren van de subqueries als het totale proces duurt, voor de SQLite-versie enkel de totale duur.
+We hebben de runtime van onderstaande 8 queries gemeten op de \texttt{s\_1092.vcf}-dataset op een Cassandra-cluster van 9 nodes met replicatiefactor 3 en van queries 1, 4 en 8 op de \texttt{m\_1092.vcf}-dataset op een Cassandra-cluster van 10 nodes met replicatiefactor 3. Ter vergelijking voerden we dezelfde queries ook uit met de SQLite-versie van GEMINI. Onze implementatie van GEMINI hebben we alle 24 beschikbare threads op \'e\'en node laten gebruiken. De SQLite-versie van GEMINI biedt geen opties om queries parallel of op een andere manier sneller te laten verlopen, dit is dus snelste configuratie. Voor de Cassandra-versie van GEMINI hebben we zowel gemeten hoe lang het uitvoeren van de subqueries als het totale proces duurt, voor de SQLite-versie enkel de totale duur.
 
 \begin{enumerate}
 \item \textbf{Query 1} Deze query dient om de performantie van eenvoudige queries op de kolommen van een tabel zoals de \texttt{variants}-tabel te meten.
@@ -223,7 +223,7 @@ We hebben de runtime van onderstaande 8 queries gemeten op de \texttt{s\_1092.vc
 \subsubsection{Reflectie}
 
 Uit het resultaat voor query 1 en 2 blijkt dat GEMINI met Cassandra voor eenvoudige queries op de \texttt{variants}-tabel het grootste deel van de totale executietijd besteed aan het ophalen van het finale resultaat. GEMINI met SQLite moet hiervoor niet over het netwerk communiceren en is duidelijk sneller.\\
-Queries 3, 4 en 5 tonen dat de evaluatie van genotype-filters in GEMINI met Cassandra grootordes sneller verloopt dan met SQLite: ongeacht de grootte van het resultaat zal SQLite \'e\'en voor \'e\'en alle variants overlopen, de binaire genotype-kolommen decomprimeren en de filter als een Python-\texttt{eval}-statement evalueren. GEMINI met Cassandra komt ervan af met een beperkt aantal (gelijk aan het aantal clausules in de filter) subqueries die elk slechts een subset van het totale variants teruggeven, en moet enkel de resultaten hiervan nog combineren. De totale kost hangt hier duidelijk samen met de kardinaliteit van het resultaat, waar die in het SQLite afhangt van het totale aantal variants.\\
+Queries 3, 4 en 5 tonen dat de evaluatie van genotype-filters in GEMINI met Cassandra grootteordes sneller verloopt dan met SQLite: ongeacht de grootte van het resultaat zal SQLite \'e\'en voor \'e\'en alle variants overlopen, de binaire genotype-kolommen decomprimeren en de filter als een Python-\texttt{eval}-statement evalueren. GEMINI met Cassandra komt ervan af met een beperkt aantal (gelijk aan het aantal clausules in de filter) subqueries die elk slechts een subset van het totale variants teruggeven, en moet enkel de resultaten hiervan nog combineren. De totale kost hangt hier duidelijk samen met de kardinaliteit van het resultaat, waar die in het SQLite afhangt van het totale aantal variants.\\
 Queries 6, 7 en 8 tonen dat ook de evaluatie van genotype wildcards significant sneller verloopt met een Cassandra-database dan met een SQLite-database. Het evalueren van de subqueries duurt bij deze queries duidelijk langer dan in de eenvoudige genotype-filters van queries 4 \& 5, maar het zijn er dan ook beduidend meer. Er zijn 566 samples met fenotype 2, wat betekent dat elke wildcard zich vertaalt naar 566 subqueries. \\
 Het verschil in uitvoeringstijd tussen query 7 en 8 kan verklaard worden door de kardinaliteit van het resultaat van het linkerlid van de respectievelijke conjuncties: het linkerlid van query 7 geeft 0 variants terug, waardoor de evaluatie van het rechterlid overgeslagen kan worden. Het linkerlid van query 8 levert daarentegen een niet-ledige verzameling van variants op, waardoor het rechterlid wel ge\"evalueerd dient te worden. Dit kost opnieuw 566 subqueries.\\
 
@@ -238,7 +238,7 @@ Het doel van dit experiment is te onderzoeken of de querysnelheid meeschaalt wan
 
 \subsubsection{Omstandigheden}
 
-Voor dit experiment hebben we query 1 en 8 uit experiment 3 (\ref{exp3}) hergebruikt: query 1 omwille van de grootte van het resultaat, query 8 omwille van de duur van de evaluatie van de genotype wildcard. We hebben de uitvoeringstijd voor de twee queries gemeten bij uitvoering van GEMINI met 4, 8, 12, 16 en 24 threads. Het Cassandra-cluster, met de \texttt{s.vcf.gz}-dataset, bestond uit 9 nodes, met replicatiefactor 3.
+Voor dit experiment hebben we query 1 en 8 uit experiment 3 (\ref{exp3}) hergebruikt: query 1 omwille van de grootte van het resultaat, query 8 omwille van de duur van de evaluatie van de genotype wildcard. We hebben de uitvoeringstijd voor de twee queries gemeten bij uitvoering van GEMINI met 4, 8, 12, 16 en 24 threads. De Cassandra-cluster, met de \texttt{s.vcf.gz}-dataset, bestond uit 9 nodes, met replicatiefactor 3.
 
 \subsubsection{Resultaten}
 
@@ -268,7 +268,7 @@ Bij query 8 is er een gelijkaardige duidelijke daling van de executietijd merkba
 
 \subsubsection{Opzet}
 
-In dit opzet willen we onderzoeken hoe de grootte van het gebruikte Cassandra-cluster de performantie van queries be\"invloedt. We verwachten een hogere leesthroughput en daardoor een positief effect op zowel het ophalen van het finale resultaat als bij het concurrent evalueren van meerdere subqueries.
+In dit opzet willen we onderzoeken hoe de grootte van de gebruikte Cassandra-cluster de performantie van queries be\"invloedt. We verwachten een hogere leesthroughput en daardoor een positief effect op zowel het ophalen van het finale resultaat als bij het concurrent evalueren van meerdere subqueries.
 
 \subsubsection{Omstandigheden}
 
@@ -288,22 +288,22 @@ Voor dit experiment hebben we query 1 en 8 uit experiment 3 (\ref{exp3}) hergebr
 \multicolumn{1}{|l|}{\textbf{11}} & \multicolumn{1}{l|}{$6.43 \pm 0.07$} &\multicolumn{1}{l|}{$363.32 \pm 5.83$}           & \multicolumn{1}{l|}{$373.85 \pm 0.91$}           & \multicolumn{1}{l|}{$388.49 \pm 0.96$}                        \\
 \bottomrule
 \end{tabular}
-\caption{Meetresultaten voor de executietijd van GEMINI-queries in een Cassandra-databank, voor variabele grootte van het Cassandra-cluster.}
+\caption{Meetresultaten voor de executietijd van GEMINI-queries in een Cassandra-databank, voor variabele grootte van de Cassandra-cluster.}
 \end{table}
 
 \subsubsection{Reflectie}
 
-Voor query 1 is er een duidelijke daling van de queryduur merkbaar. Gezien de grootte van het resultaat van query 1 heeft die alle baat bij een verhoogde leesthroughput: de duur van het evalueren van de query evolueert niet met de grootte van het cluster, de duur van het ophalen van de finale 339819 rijen wel.\\
-Query 8 verloopt ook sneller bij toenemend aantal nodes in het cluster, maar het effect is niet zo drastisch als bij query 1. Van 9 naar 11 nodes is er zelfs een stijging merkbaar. De geringere stijging van de snelheid valt te verklaren door het lagere aantal (sub)queries dat gebeurt tijdens het evalueren van query 8 dan tijdens het ophalen van het resultaat van query 1. Query 8 voert 556 subqueries uit, terwijl query 1 per 50 rijen (van de 339819) een query zal uitvoeren. Dit bevestigt de hypothese dat de evaluatie van query 8 eerder CPU- dan I/O-bound is.
+Voor query 1 is er een duidelijke daling van de queryduur merkbaar. Gezien de grootte van het resultaat van query 1 heeft die alle baat bij een verhoogde leesthroughput: de duur van het evalueren van de query evolueert niet met de grootte van de cluster, de duur van het ophalen van de finale 339819 rijen wel.\\
+Query 8 verloopt ook sneller bij toenemend aantal nodes in de cluster, maar het effect is niet zo drastisch als bij query 1. Van 9 naar 11 nodes is er zelfs een stijging merkbaar. De geringere stijging van de snelheid valt te verklaren door het lagere aantal (sub)queries dat gebeurt tijdens het evalueren van query 8 dan tijdens het ophalen van het resultaat van query 1. Query 8 voert 556 subqueries uit, terwijl query 1 per 50 rijen (van de 339819) een query zal uitvoeren. Dit bevestigt de hypothese dat de evaluatie van query 8 eerder CPU- dan I/O-bound is.
 
 \section{Evaluatie: conclusie}
 
 In dit hoofdstuk hebben we ons ontwerp voor een schaalbare genoomanalysetool op basis van GEMINI en Apache Cassandra getest en experimenteel gevalideerd.\\
 Met behulp van de unit-tests van de originele implementatie van GEMINI hebben we bewezen dat onze Cassandra-implementatie op een correcte wijze de belangrijkste features van GEMINI, namelijk het inladen van genoomdata en die met een verrijkte SQL-syntax doorzoeken, ondersteunt.\\
 Daarnaast hebben we ook de performantie van onze implementatie gemeten door ze aan een reeks benchmarks te onderwerpen en de resultaten hiervan te vergelijken met de prestaties van de SQLite-versie van GEMINI. \\
-Bij het inladen van genoomdata is de SQLite versie een ordegrootte sneller dan onze implementatie, voornamelijk door de grote dataduplicatie in ons ontwerp. Dankzij de uitbreidbaarheid van ons ontwerp is dit echter een eenmalige kost.\\
+Bij het inladen van genoomdata is de SQLite versie een grootteorde sneller dan onze implementatie, voornamelijk door de grote dataduplicatie in ons ontwerp. Dankzij de uitbreidbaarheid van ons ontwerp is dit echter een eenmalige kost.\\
 Het uitvoeren van eenvoudige SQL-queries verloopt ook sneller in de SQLite-implementatie, omdat deze niet over het netwerk moet communiceren om de resultaten op te halen.\\
 Complexere queries met beperkingen op de genotypes van samples verlopen echter 1 tot 2 grootteordes sneller in onze implementatie: waar GEMINI in SQLite alle variants \'e\'en voor \'e\'en moet overlopen, kan GEMINI met Cassandra met enkele specifieke subqueries de kandidaat-variants opvragen en ze met set-operaties combineren tot het juiste resultaat.\\
-Tot slot hebben we ook de invloed van parallellisatie en de grootte van het gebruikte Cassandra-cluster op de performantie van onze implementatie onderzocht. Hieruit blijkt dat zowel het inladen als queryen van genoomdata baat heeft bij een groter Cassandra-cluster. Het queryen verloopt ook bijna lineair sneller naarmate meer threads worden gebruikt, zowel voor CPU- als I/O-intensieve queries.
+Tot slot hebben we ook de invloed van parallellisatie en de grootte van de gebruikte Cassandra-cluster op de performantie van onze implementatie onderzocht. Hieruit blijkt dat zowel het inladen als queryen van genoomdata baat heeft bij een groter Cassandra-cluster. Het queryen verloopt ook bijna lineair sneller naarmate meer threads worden gebruikt, zowel voor CPU- als I/O-intensieve queries.
 
 

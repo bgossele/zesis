@@ -319,7 +319,8 @@ def count_query(conn, field, clause, initial_set):
     
     for name in names:        
         query = '''SELECT variant_id FROM variants_by_samples_%s \
-		WHERE sample_name = '%s' AND %s %s ''' % (field, name, field, clause)
+		WHERE sample_name = '%s' AND %s %s ''' \
+			% (field, name, field, clause)
         
         if initial_set != "*" and not any (op in clause for op in ["<", ">"]):           
             in_clause = ",".join(map(str, initial_set))
