@@ -329,7 +329,7 @@ We hebben de grootte van de Cassandra-databases per node vergeleken voor de \tex
 
 \subsubsection{Reflectie}
 
-De impact van ons datamodel is duidelijk erg groot: vergeleken met de overeenkomstige SQLite-databanken, zijn de Cassandra-databanken ettelijke malen groter, zelfs zonder replicatie in rekening te brengen. Wat ook meespeelt, is dat in SQLite alle genotype-gegevens in gecomprimeerd formaat bewaard worden, terwijl die in Cassandra gedecomprimeerd en bovendien meerdere keren (1 keer in de \texttt{variants}-tabel, 1 keer in de genotype-hulptabellen van de \texttt{variants}-tabel) opgeslagen worden.
+De impact van de gegevensduplicatie in ons dataschema is duidelijk erg groot: vergeleken met de overeenkomstige SQLite-databanken, zijn de Cassandra-databanken vele malen groter, zelfs zonder replicatie in rekening te brengen. Wat ook meespeelt, is dat in SQLite alle genotype-gegevens in gecomprimeerd formaat bewaard worden, terwijl die in Cassandra gedecomprimeerd en bovendien meerdere keren (1 keer in de \texttt{variants}-tabel, 1 keer in de genotype-hulptabellen van de \texttt{variants}-tabel) opgeslagen worden.
 
 \section{Evaluatie: conclusie}
 
@@ -337,8 +337,9 @@ In dit hoofdstuk hebben we ons ontwerp voor een schaalbare genoomanalysetool op 
 Met behulp van de unit-tests van de originele implementatie van GEMINI hebben we bewezen dat onze Cassandra-implementatie op een correcte wijze de belangrijkste features van GEMINI, namelijk het inladen van genoomdata en die met een verrijkte SQL-syntax doorzoeken, ondersteunt.\\
 Daarnaast hebben we ook de performantie van onze implementatie gemeten door ze aan een reeks benchmarks te onderwerpen en de resultaten hiervan te vergelijken met de prestaties van de SQLite-versie van GEMINI. \\
 Bij het inladen van genoomdata is de SQLite versie een grootteorde sneller dan onze implementatie, voornamelijk door de grote dataduplicatie in ons ontwerp. Dankzij de uitbreidbaarheid van ons ontwerp is dit echter een eenmalige kost.\\
+Uit onze experimenten blijkt ook dat de duplicatie van gegevens in ons dataschema gecombineerd met het ongecomprimeerd opslaan van de genotype-informatie ervoor zorgt dat onze implementatie ettelijke malen meer schijfruimte vereist dan de oorspronkelijke SQLite-implementatie.\\
 Het uitvoeren van eenvoudige SQL-queries verloopt ook sneller in de SQLite-implementatie, omdat deze niet over het netwerk moet communiceren om de resultaten op te halen.\\
 Complexere queries met beperkingen op de genotypes van samples verlopen echter 1 tot 2 grootteordes sneller in onze implementatie: waar GEMINI in SQLite alle variants \'e\'en voor \'e\'en moet overlopen, kan GEMINI met Cassandra met enkele specifieke subqueries de kandidaat-variants opvragen en ze met set-operaties combineren tot het juiste resultaat.\\
-Tot slot hebben we ook de invloed van parallellisatie en de grootte van de gebruikte Cassandra-cluster op de performantie van onze implementatie onderzocht. Hieruit blijkt dat zowel het inladen als queryen van genoomdata baat heeft bij een groter Cassandra-cluster. Het queryen verloopt ook bijna lineair sneller naarmate meer threads worden gebruikt, zowel voor CPU- als I/O-intensieve queries.
+We hebben ook de invloed van parallellisatie en de grootte van de gebruikte Cassandra-cluster op de performantie van onze implementatie onderzocht. Hieruit blijkt dat zowel het inladen als queryen van genoomdata baat heeft bij een groter Cassandra-cluster. Het queryen verloopt ook bijna lineair sneller naarmate meer threads worden gebruikt, zowel voor CPU- als I/O-intensieve queries.\\
 
 
