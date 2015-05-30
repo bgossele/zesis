@@ -112,9 +112,10 @@ We hebben de performantie gemeten voor de \texttt{s\_1092.vcf.gz}-dataset, in Ca
 \begin{tabular}{@{}llll@{}}
 \cmidrule(l){1-4}
 \multicolumn{1}{|l|}{\textbf{\# Nodes}}  & \multicolumn{1}{l|}{\textbf{\texttt{INSERT variants} [s]}} & \multicolumn{1}{l|}{\textbf{\texttt{INSERT genotypes} [s]}} & \multicolumn{1}{l|}{\textbf{Tot. duur batch [s]}}             \\ \midrule
-\multicolumn{1}{|l|}{5} & \multicolumn{1}{l|}{$ $} & \multicolumn{1}{l|}{$ $}   & \multicolumn{1}{l|}{$ $}\\
+\multicolumn{1}{|l|}{5} & \multicolumn{1}{l|}{$2.44 \pm 1.38$} & \multicolumn{1}{l|}{$54.54 \pm 4.51$}   & \multicolumn{1}{l|}{$60.54 \pm 4.70$}\\
 \multicolumn{1}{|l|}{7} & \multicolumn{1}{l|}{$1.98 \pm 1.12$} & \multicolumn{1}{l|}{$49.30 \pm 3.77$}     &  \multicolumn{1}{l|}{$54.89 \pm 4.17$}  \\
-\multicolumn{1}{|l|}{10} & \multicolumn{1}{l|}{$2.44 \pm 1.26$} & \multicolumn{1}{l|}{$46.95 \pm 4.46$}     &  \multicolumn{1}{l|}{$52.92 \pm 4.55$}  \\
+\multicolumn{1}{|l|}{10} & \multicolumn{1}{l|}{$2.06 \pm 1.19$} & \multicolumn{1}{l|}{$45.23 \pm 4.10$}     &  \multicolumn{1}{l|}{$50.91 \pm 4.36$}  \\
+\multicolumn{1}{|l|}{12} & \multicolumn{1}{l|}{$2.29 \pm 1.29$} &\multicolumn{1}{l|}{$44.26 \pm 4.32$}     &  \multicolumn{1}{l|}{$50.16 \pm 4.46$}  \\
 \bottomrule
 \end{tabular}
 \caption{Meetresultaten voor de duur van het inladen van genoomdata in Cassandra bij variabele grootte van het Cassandra-cluster. De gemeten tijden zijn de waarden voor \'e\'en batch van 50 variants, gemiddeld over 24 threads.}
@@ -122,7 +123,7 @@ We hebben de performantie gemeten voor de \texttt{s\_1092.vcf.gz}-dataset, in Ca
 
 \subsubsection{Reflectie}
 
-{\color{red} \huge{TODO}}
+De totale throughput stijgt merkbaar bij toenemende grootte van de cluster. Dit laat zich vooral merken bij het invoegen van de genotypes van de samples: gezien dit per batch veel meer writes inhoudt  (1092x meer) dan het invoeren van de variants in de  \texttt{variants}-tabel, laat het effect zich hier meer voelen. Bij stijging van 10 naar 12 nodes treedt er verzadiging op en stijgt de throughput niet meer zo drastisch als bij de overstap van 5 naar 7 of van 7 naar 10 nodes. Bij 10 nodes is de totale schrijfbandbreedte al voldoende groot en ligt de bottleneck weer bij GEMINI, eerder dan bij Cassandra.
 
 \subsection{Experiment 3: \texttt{gemini query} met Cassandra vs. SQLite}
 \label{exp3}
