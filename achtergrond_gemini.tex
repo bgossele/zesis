@@ -31,7 +31,7 @@ Een belangrijke troef van GEMINI en z'n datamodel is de flexibiliteit die het la
 
 \section{Inladen}
 \label{loading_origineel}
-Het inladen van de data uit VCF-bestanden is een computationeel intensieve operatie, enerzijds omwille van de grootte van deze bestanden (al gauw meerdere gigabytes, in gecomprimeerd formaat), en anderzijds omdat alle variants geannoteerd moeten worden. Om het proces te versnellen, biedt GEMINI de mogelijkheid het werk te paralleliseren door het VCF-bestand te comprimeren, op het bestaande bestand een index te defini\"eren en zo het werk te verdelen. Dit kan over meerdere processoren binnen 1 computer zijn, maar via de IPython-interface ook over volledige clusters van computers \cite{PER-GRA:2007}.\\
+Het inladen van de data uit VCF-bestanden is een computationeel intensieve operatie, enerzijds omwille van de grootte van deze bestanden (al gauw meerdere gigabytes, in gecomprimeerd formaat), en anderzijds omdat alle variants geannoteerd moeten worden. Om het proces te versnellen, biedt GEMINI de mogelijkheid het werk te paralleliseren door het VCF-bestand te comprimeren, op het gecomprimeerde bestand een index te defini\"eren, hiermee het gecomprimeerde bestanden in stukken op te splitsen en zo het werk te verdelen. Dit kan over meerdere processoren binnen 1 computer zijn, maar via de IPython-interface ook over volledige clusters van computers \cite{PER-GRA:2007}.\\
 
 \begin{figure}[!h]
 \includegraphics[width=\textwidth,keepaspectratio]{load_schema}
