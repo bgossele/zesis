@@ -116,23 +116,23 @@ Dit experiment bestudeert de invloed van de grootte van het Cassandra-cluster op
 
 \subsubsection{Omstandigheden}
 
-We hebben de performantie gemeten voor de \texttt{s\_1092.vcf.gz}-dataset, in Cassandra-clusters van 5, 7 en 10 nodes. GEMINI draaide op 24 threads verspreid over 2 nodes.
+We hebben de performantie gemeten voor de \texttt{s\_1092.vcf.gz}-dataset, in Cassandra-clusters van 5, 7, 10 en 12 nodes. GEMINI draaide op 24 threads verspreid over 2 nodes.
 
+\newpage
 \subsubsection{Resultaten}
 
 \begin{table}[h]
 \centering
-
 \begin{tabular}{@{}llll@{}}
 \cmidrule(l){1-4}
-\multicolumn{1}{|l|}{\textbf{\# Nodes}}  & \multicolumn{1}{l|}{\textbf{\texttt{INSERT variants} [s]}} & \multicolumn{1}{l|}{\textbf{\texttt{INSERT genotypes} [s]}} & \multicolumn{1}{l|}{\textbf{Tot. duur batch [s]}}             \\ \midrule
-\multicolumn{1}{|l|}{5} & \multicolumn{1}{l|}{$2.44 \pm 1.38$} & \multicolumn{1}{l|}{$54.54 \pm 4.51$}   & \multicolumn{1}{l|}{$60.54 \pm 4.70$}\\
-\multicolumn{1}{|l|}{7} & \multicolumn{1}{l|}{$1.98 \pm 1.12$} & \multicolumn{1}{l|}{$49.30 \pm 3.77$}     &  \multicolumn{1}{l|}{$54.89 \pm 4.17$}  \\
-\multicolumn{1}{|l|}{10} & \multicolumn{1}{l|}{$2.06 \pm 1.19$} & \multicolumn{1}{l|}{$45.23 \pm 4.10$}     &  \multicolumn{1}{l|}{$50.91 \pm 4.36$}  \\
-\multicolumn{1}{|l|}{12} & \multicolumn{1}{l|}{$2.29 \pm 1.29$} &\multicolumn{1}{l|}{$44.26 \pm 4.32$}     &  \multicolumn{1}{l|}{$50.16 \pm 4.46$}  \\
+\multicolumn{1}{|l|}{\textbf{\# Nodes}}  & \multicolumn{1}{l|}{\textbf{\texttt{INSERT variants} [s]}} & \multicolumn{1}{l|}{\textbf{\texttt{INSERT genotypes} [s]}} & \multicolumn{1}{l|}{\textbf{Throughput [vars/s]}}             \\ \midrule
+\multicolumn{1}{|l|}{5} & \multicolumn{1}{l|}{$2.44 \pm 1.38$} & \multicolumn{1}{l|}{$54.54 \pm 4.51$}   & \multicolumn{1}{l|}{$19.93 \pm 1.46$}\\
+\multicolumn{1}{|l|}{7} & \multicolumn{1}{l|}{$1.98 \pm 1.12$} & \multicolumn{1}{l|}{$49.30 \pm 3.77$}     &  \multicolumn{1}{l|}{$21.97 \pm 1.55$}  \\
+\multicolumn{1}{|l|}{10} & \multicolumn{1}{l|}{$2.06 \pm 1.19$} & \multicolumn{1}{l|}{$45.23 \pm 4.10$}     &  \multicolumn{1}{l|}{$23.71 \pm 1.75$}  \\
+\multicolumn{1}{|l|}{12} & \multicolumn{1}{l|}{$2.29 \pm 1.29$} &\multicolumn{1}{l|}{$44.26 \pm 4.32$}     &  \multicolumn{1}{l|}{$24.08 \pm 1.85$}  \\
 \bottomrule
 \end{tabular}
-\caption{Meetresultaten voor de duur van het inladen van genoomdata in Cassandra bij variabele grootte van het Cassandra-cluster. De gemeten tijden zijn de waarden voor \'e\'en batch van 50 variants, gemiddeld over 24 threads.}
+\caption{Meetresultaten voor de duur van het inladen van genoomdata in Cassandra bij variabele grootte van de Cassandra-cluster. De gemeten tijden zijn de waarden voor \'e\'en batch van 50 variants, gemiddeld over 24 threads; de throughput is voor alle 24 threads opgeteld.}
 \end{table}
 
 \subsubsection{Reflectie}
@@ -200,7 +200,6 @@ We hebben de runtime van onderstaande 8 queries gemeten op de \texttt{s\_1092.vc
 
 \end{enumerate}
 
-\newpage
 \subsubsection{Resultaten}
 
 \begin{table}[h]
@@ -258,7 +257,6 @@ Het doel van dit experiment is te onderzoeken of de querysnelheid meeschaalt wan
 
 Voor dit experiment hebben we query 1 en 8 uit experiment 3 (\ref{exp3}) hergebruikt: query 1 omwille van de grootte van het resultaat, query 8 omwille van de duur van de evaluatie van de genotype wildcard. We hebben de uitvoeringstijd voor de twee queries gemeten bij uitvoering van GEMINI met 4, 8, 12, 16 en 24 threads. De Cassandra-cluster, met de \texttt{s.vcf.gz}-dataset, bestond uit 9 nodes, met replicatiefactor 3.
 
-\newpage
 \subsubsection{Resultaten}
 
 \begin{table}[!h]
