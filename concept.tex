@@ -105,6 +105,7 @@ Een vierde mogelijke strategie is de combinatie van de tweede en de derde optie.
 De uiteindelijke keuze is gevallen op de laatste optie, omdat die het meest van de 4 de queryfunctionaliteiten van GEMINI ondersteunt. Zoals hierboven beschreven blijft het zelfs met dit dataschema niet voor de hand liggend alle in GEMINI mogelijke queries uit te voeren, en zal door het ontbreken van \texttt{JOIN}s en de layout van de \texttt{genotype}-tabellen het combineren van beperkingen op de genotypes van meerdere samples nog extra aanpassingen vergen. Hier gaan secties \ref{gemini_query_concept} en \ref{gemini_query_impl} uitvoerig op in.
 
 \subsubsection{\texttt{variants-, samples-}tabel vs. arbitraire queries}
+\label{arbitraire_queries}
 
 Een tweede belangrijk vraagstuk is hoe de \texttt{variants-} en \texttt{samples-}tabellen zo te ontwerpen dat ze ook op andere, arbitraire kolommen effici\"ent doorzoekbaar zijn.\\
 Om queries op kolommen te ondersteunen die logisch gezien enkel met gelijkheden beperkt zullen worden, zoals \texttt{chrom} of respectievelijk \texttt{sex}, zou het in theorie volstaan op deze kolommen een secundaire index te defini\"eren. Dit is eenvoudig bij de creatie van de tabel, veroorzaakt geen duplicatie van data en is zeer rechttoe-rechtaan bij het query'en, maar heeft zoals hierboven vermeld onvoorspelbare performantie afhankelijk van de kardinaliteit van de kolommen. Bovendien werkt dit mechanisme niet voor kolommen die vaker met ongelijkheidsbeperkingen gequeried zullen worden, zoals \texttt{depth}, \texttt{start}, of in het geval van de \texttt{samples}-tabel (hypothetisch, deze tabellen zitten niet standaard in GEMINI) leeftijd of generatie.\\
@@ -139,6 +140,11 @@ Een aanpak die in beide gevallen op een voorspelbare en betrouwbare manier werkt
 \end{tabular}
 \end{table}
 \end{itemize}
+
+De enige soort queries die onze implementatie niet ondersteunt, zijn pure range-queries, zoals:\\
+
+\texttt{SELECT * FROM variants WHERE start > 123456}\\\\
+Zoals eerder beschreven in \ref{cassandra_datamodel} laat het datamodel van Cassandra dit niet toe: het is op basis van de query onmogelijk een primary key te bepalen van de rijen in het resultaat om zo een set opeenvolgende rijen uit de tabel in kwestie op te vragen. Een mogelijke oplossing is om een hulptabel te defini\"eren met als partition key een kolom met beperkte kardinaliteit, zoals \texttt{chrom} (de mens heeft slechts 46 chromosomen, zie \ref{dna_dummies}) en als clustering column de kolom waarop range queries nodig zijn, in dit geval \texttt{start}. In de client code kan bovenstaande range query dan vertaald worden naar 46 range queries die voor elk chromosoom de variant binnen de bepaalde range opvragen.   
 
 \subsubsection{\texttt{JOIN}s}
 
