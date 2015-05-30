@@ -50,39 +50,56 @@ We hebben de genoomdata uit de \texttt{s\_1092.vcf.gz} en \texttt{m\_1092.vcf.gz
 
 \subsubsection{Resultaten}
 
+
 \begin{table}[h]
+\centering
+\begin{tabular}{@{}lll@{}}
+\cmidrule(l){2-3} & \multicolumn{1}{|l|}{Cassandra} & \multicolumn{1}{l|}{SQLite} \\
+\cmidrule(l){1-3}
+\multicolumn{1}{|l|}{\textbf{Dataset}}  & \multicolumn{1}{l|}{\textbf{Throughput [variants/s]}} & \multicolumn{1}{l|}{\textbf{Throughput [variants/s]}} \\ \midrule
+\multicolumn{1}{|l|}{\textbf{\texttt{s\_1092}}} & \multicolumn{1}{l|}{$23.71 \pm 1.75$} & \multicolumn{1}{l|}{$165.20 \pm 1.15$}\\
+\multicolumn{1}{|l|}{\textbf{\texttt{m\_1092}}} & \multicolumn{1}{l|}{$23.88 \pm 1.78$} & \multicolumn{1}{l|}{$223.57 \pm 4.35$}\\
+\multicolumn{1}{|l|}{\textbf{\texttt{l\_1092}}} & \multicolumn{1}{l|}{$22.83 \pm 1.92$} & \multicolumn{1}{l|}{$211.53 \pm 1.50$}\\
+\bottomrule
+\end{tabular}
+\caption{Vergelijking van de throughput bij het laden tussen Cassandra en SQLite, voor verschillende genoomdatasets.}
+\end{table}
+
+\begin{table}[h]
+\centering
+\begin{tabular}{@{}llll@{}}
+\cmidrule(l){2-4}
+                  & \multicolumn{3}{|l|}{\textbf{Cassandra (per batch van 50 variants)}}                                    \\ 
+\cmidrule(l){1-4}
+\multicolumn{1}{|l|}{\textbf{Dataset}}  & \multicolumn{1}{l|}{\textbf{\texttt{INSERT variants} [s]}} & \multicolumn{1}{l|}{\textbf{\texttt{INSERT genotypes} [s]}} & \multicolumn{1}{l|}{\textbf{Tot. duur batch [s]}}             \\ \midrule
+\multicolumn{1}{|l|}{\textbf{\texttt{s\_1092}}} & \multicolumn{1}{l|}{$2.06 \pm 1.19$} & \multicolumn{1}{l|}{$45.23 \pm 4.10$}   & \multicolumn{1}{l|}{$50.91 \pm 4.36$}\\
+\multicolumn{1}{|l|}{\textbf{\texttt{m\_1092}}} & \multicolumn{1}{l|}{$2.22 \pm 0.61$} & \multicolumn{1}{l|}{$45.70 \pm 3.80$}     &  \multicolumn{1}{l|}{$51.55 \pm 3.83$}  \\
+\multicolumn{1}{|l|}{\textbf{\texttt{l\_1092}}} & \multicolumn{1}{l|}{$2.44 \pm 1.26$} & \multicolumn{1}{l|}{$46.95 \pm 4.46$}     &  \multicolumn{1}{l|}{$52.92 \pm 4.55$}  \\
+\bottomrule
+\end{tabular}
+\caption{Meetresultaten voor de duur van het inladen van genoomdata in Cassandra bij variabele grootte van de genoomdataset. De gemeten tijden zijn gemiddeldes over 24 threads.}
+\end{table}
+
+\begin{table}[h]
+\centering
 \begin{tabular}{@{}llll@{}}
 \cmidrule(l){2-4}
                               & \multicolumn{3}{|l|}{\textbf{SQLite}}                             \\ 
 \cmidrule(l){1-4}
-\multicolumn{1}{|l|}{\textbf{Dataset}}  & \multicolumn{1}{l|}{\textbf{Chunk-dbs laden [s]}} & \multicolumn{1}{l|}{\textbf{Chunk-dbs mergen [s]}} & \multicolumn{1}{l|}{\textbf{Totaal [s]}} \\ \midrule
-\multicolumn{1}{|l|}{\textbf{\texttt{s\_1092.vcf.gz}}} &    \multicolumn{1}{l|}{$2440.47 \pm 7.46$}         & \multicolumn{1}{l|}{$551.95 \pm 18.44$}          & \multicolumn{1}{l|}{$2992.41 \pm 20.92$}                          \\
-\multicolumn{1}{|l|}{\textbf{\texttt{m\_1092.vcf.gz}}} &    \multicolumn{1}{l|}{$2945.62 \pm 44.90$}       & \multicolumn{1}{l|}{$880.89 \pm 34.47$}          & \multicolumn{1}{l|}{$3826.51 \pm 76.88$}                          \\
-\multicolumn{1}{|l|}{\textbf{\texttt{l\_1092.vcf.gz}}} &    \multicolumn{1}{l|}{$6879.86 \pm 40.39$}       & \multicolumn{1}{l|}{$2021.01 \pm 35.17$}          & \multicolumn{1}{l|}{$8900.86 \pm 63.32$}                          \\
-\multicolumn{1}{|l|}{\textbf{\texttt{xl\_1092.vcf.gz}}} &    \multicolumn{1}{l|}{$11437.81 \pm 135.09$}       & \multicolumn{1}{l|}{$3462.00 \pm 70.37$}          & \multicolumn{1}{l|}{$14899.91 \pm 123.45$}                          \\
+\multicolumn{1}{|l|}{\textbf{Dataset}}  & \multicolumn{1}{l|}{\textbf{Chunks laden [s]}} & \multicolumn{1}{l|}{\textbf{Chunks mergen [s]}} & \multicolumn{1}{l|}{\textbf{Totaal [s]}} \\ \midrule
+\multicolumn{1}{|l|}{\textbf{\texttt{s\_1092}}} &    \multicolumn{1}{l|}{$2440.47 \pm 7.46$}         & \multicolumn{1}{l|}{$551.95 \pm 18.44$}          & \multicolumn{1}{l|}{$2992.41 \pm 20.92$}                          \\
+\multicolumn{1}{|l|}{\textbf{\texttt{m\_1092}}} &    \multicolumn{1}{l|}{$2945.62 \pm 44.90$}       & \multicolumn{1}{l|}{$880.89 \pm 34.47$}          & \multicolumn{1}{l|}{$3826.51 \pm 76.88$}                          \\
+\multicolumn{1}{|l|}{\textbf{\texttt{l\_1092}}} &    \multicolumn{1}{l|}{$6879.86 \pm 40.39$}       & \multicolumn{1}{l|}{$2021.01 \pm 35.17$}          & \multicolumn{1}{l|}{$8900.86 \pm 63.32$}                          \\
+\multicolumn{1}{|l|}{\textbf{\texttt{xl\_1092}}} &    \multicolumn{1}{l|}{$11437.81 \pm 135.09$}       & \multicolumn{1}{l|}{$3462.00 \pm 70.37$}          & \multicolumn{1}{l|}{$14899.91 \pm 123.45$}                          \\
 \bottomrule
 \end{tabular}
 \caption{Meetresultaten voor de runtime van het inladen van genoomdata in SQLite bij variabele grootte van de genoomdataset.}
 \end{table}
 
-\begin{table}[h]
-
-\begin{tabular}{@{}llll@{}}
-\cmidrule(l){2-4}
-                  & \multicolumn{3}{|l|}{\textbf{Cassandra}}                                    \\ 
-\cmidrule(l){1-4}
-\multicolumn{1}{|l|}{\textbf{Dataset}}  & \multicolumn{1}{l|}{\textbf{\texttt{INSERT variants} [s]}} & \multicolumn{1}{l|}{\textbf{\texttt{INSERT genotypes} [s]}} & \multicolumn{1}{l|}{\textbf{Tot. duur batch [s]}}             \\ \midrule
-\multicolumn{1}{|l|}{\textbf{\texttt{s\_1092.vcf.gz}}} & \multicolumn{1}{l|}{$2.06 \pm 1.19$} & \multicolumn{1}{l|}{$45.23 \pm 4.10$}   & \multicolumn{1}{l|}{$50.91 \pm 4.36$}\\
-\multicolumn{1}{|l|}{\textbf{\texttt{m\_1092.vcf.gz}}} & \multicolumn{1}{l|}{$2.22 \pm 0.61$} & \multicolumn{1}{l|}{$45.70 \pm 3.80$}     &  \multicolumn{1}{l|}{$51.55 \pm 3.83$}  \\
-\multicolumn{1}{|l|}{\textbf{\texttt{l\_1092.vcf.gz}}} & \multicolumn{1}{l|}{$2.44 \pm 1.26$} & \multicolumn{1}{l|}{$46.95 \pm 4.46$}     &  \multicolumn{1}{l|}{$52.92 \pm 4.55$}  \\
-\bottomrule
-\end{tabular}
-\caption{Meetresultaten voor de duur van het inladen van genoomdata in Cassandra bij variabele grootte van de genoomdataset. De gemeten tijden zijn de waarden voor \'e\'en batch van 50 variants, gemiddeld over 24 threads.}
-\end{table}
-
+\newpage
 \subsubsection{Reflectie}
 
-Het inladen van de genoomdata verloopt duidelijk ettelijke malen sneller in de originele versie van GEMINI dan de Cassandra-versie. Dit is voornamelijk te wijten aan twee factoren: enerzijds moet GEMINI met Cassandra gigantische veel rijen invoeren dankzij het nieuwe datamodel. De hulptabellen met gegevens over de genotypes van elke sample per variant hebben $\#variants * \#samples$ rijen, wat zelfs voor de kleinste dataset al oploopt tot om en bij de 500 miljoen rijen. Uit de metingen blijkt ook duidelijk dat het vullen van deze tabellen het meeste tijd in beslag neemt: zo'n 90\% van het totale laadproces. Met de bedenking erbij dat voor elke 50 variants, $4 * 50 * 1092$ rijen worden ingevoerd, en dit door 24 threads tegelijkertijd, haalt onze implementatie in deze setup voor deze hulptabellen een schrijfthroughput van in de orde van 100000 writes/s. Bovendien varieert de throughput nauwelijks met toenemende grootte (in variants) van de ingevoerde dataset. Om die reden, en omwille van de extreem lange duur, hebben we het experiment ook niet herhaald voor de \texttt{xl\_1092.vcf.gz}-dataset. Een schatting leert dat het inladen hiervan in deze setup ongeveer 40 uur zou duren.\\
+Het inladen van de genoomdata verloopt in de orde van 10x sneller in de originele versie van GEMINI dan de Cassandra-versie. Dit is voornamelijk te wijten aan twee factoren: enerzijds moet GEMINI met Cassandra gigantische veel rijen invoeren dankzij het nieuwe datamodel. De hulptabellen met gegevens over de genotypes van elke sample per variant hebben $\#variants * \#samples$ rijen, wat zelfs voor de kleinste dataset al oploopt tot om en bij de 500 miljoen rijen. Uit de metingen blijkt ook duidelijk dat het vullen van deze tabellen het meeste tijd in beslag neemt: zo'n 90\% van het totale laadproces. Met de bedenking erbij dat voor elke 50 variants, $4 * 50 * 1092$ rijen worden ingevoerd, en dit door 24 threads tegelijkertijd, haalt onze implementatie in deze setup voor deze hulptabellen een schrijfthroughput van in de orde van 100000 writes/s. Bovendien varieert de throughput nauwelijks met toenemende grootte (in variants) van de ingevoerde dataset. Om die reden, en omwille van de extreem lange duur, hebben we het experiment ook niet herhaald voor de \texttt{xl\_1092.vcf.gz}-dataset. Een schatting leert dat het inladen hiervan in deze setup ongeveer 40 uur zou duren.\\
 Een belangrijke bemerking bij de snelheid van het inladen is dat het datamodel van onze implementatie, in tegenstelling tot de SQLite-implementatie, uitbreidbaar is: het is niet nodig elke keer extra genoomdata beschikbaar is, de volledige dataset opnieuw in te laden. Hoewel onze implementatie trager is, zou dit een eenmalige kost moeten zijn.\\
 
 Het inladen in Cassandra verliep tijdens de experimenten niet zonder horten of stoten: af en toe traden timeouts op in de \texttt{INSERT}-queries, die altijd opgevangen konden worden door dezelfde query opnieuw te proberen (desnoods meerdere keren). Er zijn twee uitzonderingen die niet zomaar hersteld konden worden. Ten eerste het invoeren van zeer lange (strings van 10000'en of 100000'en karakters) genotypes in de \texttt{variants\_by\_samples\_gts}-tabel en ten tweede het invoeren van variants uit de \texttt{s\_2504.vcf.gz}-dataset in de \texttt{variants}-tabel.\\
@@ -104,6 +121,7 @@ We hebben de performantie gemeten voor de \texttt{s\_1092.vcf.gz}-dataset, in Ca
 \subsubsection{Resultaten}
 
 \begin{table}[h]
+\centering
 
 \begin{tabular}{@{}llll@{}}
 \cmidrule(l){1-4}
@@ -186,6 +204,7 @@ We hebben de runtime van onderstaande 8 queries gemeten op de \texttt{s\_1092.vc
 \subsubsection{Resultaten}
 
 \begin{table}[h]
+\centering
 \begin{tabular}{@{}lllll@{}}
 \cmidrule(l){3-5}
                               &         & \multicolumn{2}{|l|}{\textbf{Cassandra}}                                                      & \multicolumn{1}{l|}{\textbf{SQLite}}                             \\ 
@@ -205,6 +224,7 @@ We hebben de runtime van onderstaande 8 queries gemeten op de \texttt{s\_1092.vc
 \end{table}
 
 \begin{table}[h]
+\centering
 \begin{tabular}{@{}lllll@{}}
 \cmidrule(l){3-5}
                               &         & \multicolumn{2}{|l|}{\textbf{Cassandra}}                                                      & \multicolumn{1}{l|}{\textbf{SQLite}}                             \\ 
@@ -242,6 +262,7 @@ Voor dit experiment hebben we query 1 en 8 uit experiment 3 (\ref{exp3}) hergebr
 \subsubsection{Resultaten}
 
 \begin{table}[!h]
+\centering
 \begin{tabular}{@{}lllll@{}}
 \cmidrule(l){2-5}
                                        & \multicolumn{2}{|l|}{\textbf{Query 1}}                                                      & \multicolumn{2}{l|}{\textbf{Query 8}}                             \\ 
@@ -276,6 +297,7 @@ Voor dit experiment hebben we query 1 en 8 uit experiment 3 (\ref{exp3}) hergebr
 \subsubsection{Resultaten}
 
 \begin{table}[!h]
+\centering
 \begin{tabular}{@{}lllll@{}}
 \cmidrule(l){2-5}
                                        & \multicolumn{2}{|l|}{\textbf{Query 1}}                                                      & \multicolumn{2}{l|}{\textbf{Query 8}}                             \\ 
