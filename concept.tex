@@ -208,6 +208,6 @@ Het uitvoeren en evalueren van deze wildcards is conceptueel niet erg ingewikkel
 
 Dit betekent dat weer veel werk van de databank naar GEMINI zelf verschuift. Een mogelijke manier om dit leed te verzachten is, gezien de goede concurrency-eigenschappen van NoSQL-systemen als Cassandra, om de subqueries in parallel te evalueren in plaats van sequentieel.
 
-\section{Conceptueel ontwerp: conclusies}
+\section{Conceptueel ontwerp: conclusie}
 
 Bij wijze van gevalstudie voor schaalbare genoomanalyse hebben we een versie van GEMINI draaiende op Apache Cassandra ontworpen. Cassandra droeg onze voorkeur uit omwille van een uitstekende reputatie qua schaalbaarheid, een flexibele datamodel dat goed bij GEMINI past en een gemakkelijk te gebruiken querying API. Voor de omzetting van SQLite naar Cassandra waren enkele aanpassingen aan het ontwerp van GEMINI nodig: vooral aan het databaseschema en het queryingmechanisme, in mindere mate aan de loading-functionaliteit. Hoofdstuk \ref{implementatie} bespreekt de praktische implementatie van dit ontwerp.

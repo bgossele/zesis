@@ -86,7 +86,7 @@ De \texttt{invert\_count}-flag geeft aan of de \texttt{gt\_wildcard\_rule} een n
 \texttt{(gt\_type).(*).(!=HET).(count > 100)}\\\\
 zal GEMINI eerst voor elke variant bepalen hoeveel samples w\'el heterozygoot zijn, alvorens dit getal af te trekken van het totaal aantal samples en op dit resultaat de \texttt{(count > 100)}-filter toe te passen.
 
-\section{Implementatie: conclusies}
+\section{Implementatie: conclusie}
 
 De implementatie van het ontwerp beschreven in hoofdstuk \ref{concept} vergt vooral ingrijpende wijzigingen aan het queryingmechanisme van GEMINI: ons ontwerp analyseert queries at runtime, splitst \texttt{WHERE}-clausules en genotype-filters en -wildcards op in meerdere subqueries tegen de Cassandra databank en combineert de resultaten van die subqueries tot een coherent resultaat met behulp van set-arithmetiek. De evaluatie van de subqueries kan in parallel gebeuren op meerdere processoren om het gehele proces sneller te laten verlopen.\\
 Aan het mechanisme om genoominformatie in te laden in GEMINI verandert er minder. Ook die taak kan dankzij Cassandra eenvoudig geparalleliseerd worden, door meerdere processoren los van elkaar een disjunct deel van de data in te laten laden, rechtstreeks in dezelfde Cassandra databank.

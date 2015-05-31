@@ -17,12 +17,11 @@ Gezien onze implementatie de gewenste functionaliteit biedt, rest nog de vraag o
 
 \subsection*{Testomgeving}
 
-Voor de experimenten gebruikten we, in samenspraak met de domeinexperten van Janssen Pharmaceutica, de publiek beschikbare genoomdata van het 1000 Genome project \cite{10002012integrated}. Die datasets bevatten enkel de VCF-files, niet de sample-informatie van de proefpersonen. Om toch de hele featureset te kunnen testen, hebben we willekeurig een geslacht en fenotype aan de samples toegekend. Specifiek hebben we 5 verschillende VCF-files (in reeds gezipte toestand, vandaar de bestandsextensie) gebruikt:
+Voor de experimenten gebruikten we, in samenspraak met de domeinexperten van Janssen Pharmaceutica, de publiek beschikbare genoomdata van het 1000 Genome project \cite{10002012integrated}. Die datasets bevatten enkel de VCF-files, niet de sample-informatie van de proefpersonen. Om toch de hele featureset te kunnen testen, hebben we willekeurig een geslacht en fenotype aan de samples toegekend. Specifiek hebben we 4 verschillende VCF-files (in reeds gezipte toestand, vandaar de bestandsextensie) gebruikt:
 \begin{itemize}
 \item \texttt{s\_1092.vcf.gz} van 1.8 GB met 494328 variants van 1092 samples.
 \item \texttt{m\_1092.vcf.gz} van 3.0 GB met 855166 variants van 1092 samples.
 \item \texttt{l\_1092.vcf.gz} van 6.7 GB met 1882663 variants van 1092 samples.
-\item \texttt{xl\_1092.vcf.gz} van 11.8 GB met 3307592 variants van 1092 samples.
 \item \texttt{s\_2504.vcf.gz} van 1.2 GB met 7081600 variants van 2504 samples.
 \end{itemize}
 
@@ -35,7 +34,7 @@ In de volgende paragraaf zullen we \'e\'en voor \'e\'en de experimenten en hun r
 \item Opzet van het experiment. Wat meet het experiment precies?
 \item Omstandigheden: precieze input, commando, gebruikte infrastructuur.
 \item Resultaten
-\item Reflectie
+\item Bespreking
 \end{enumerate}
 
 \subsection{Experiment 1: \texttt{gemini load} met Cassandra vs. SQLite}
@@ -90,7 +89,6 @@ We hebben de genoomdata uit de \texttt{s\_1092} en \texttt{m\_1092} ingeladen in
 \multicolumn{1}{|l|}{\textbf{\texttt{s\_1092}}} &    \multicolumn{1}{l|}{$2440.47 \pm 7.46$}         & \multicolumn{1}{l|}{$551.95 \pm 18.44$}          & \multicolumn{1}{l|}{$2992.41 \pm 20.92$}                          \\
 \multicolumn{1}{|l|}{\textbf{\texttt{m\_1092}}} &    \multicolumn{1}{l|}{$2945.62 \pm 44.90$}       & \multicolumn{1}{l|}{$880.89 \pm 34.47$}          & \multicolumn{1}{l|}{$3826.51 \pm 76.88$}                          \\
 \multicolumn{1}{|l|}{\textbf{\texttt{l\_1092}}} &    \multicolumn{1}{l|}{$6879.86 \pm 40.39$}       & \multicolumn{1}{l|}{$2021.01 \pm 35.17$}          & \multicolumn{1}{l|}{$8900.86 \pm 63.32$}                          \\
-\multicolumn{1}{|l|}{\textbf{\texttt{xl\_1092}}} &    \multicolumn{1}{l|}{$11437.81 \pm 135.09$}       & \multicolumn{1}{l|}{$3462.00 \pm 70.37$}          & \multicolumn{1}{l|}{$14899.91 \pm 123.45$}                          \\
 \multicolumn{1}{|l|}{\textbf{\texttt{s\_2504}}} &    \multicolumn{1}{l|}{$33171.10 \pm 31.61$}       & \multicolumn{1}{l|}{$7333.99 \pm 83.69$}          & \multicolumn{1}{l|}{$40505.9 \pm 118.30$}                          \\
 \bottomrule
 \end{tabular}
@@ -98,7 +96,7 @@ We hebben de genoomdata uit de \texttt{s\_1092} en \texttt{m\_1092} ingeladen in
 \end{table}
 
 \newpage
-\subsubsection{Reflectie}
+\subsubsection{Bespreking}
 
 Het inladen van de genoomdata verloopt in de orde van 10x sneller in de originele versie van GEMINI dan de Cassandra-versie. Dit is voornamelijk te wijten aan twee factoren: enerzijds moet GEMINI met Cassandra gigantische veel rijen invoeren dankzij het nieuwe datamodel. De hulptabellen met gegevens over de genotypes van elke sample per variant hebben $\#variants * \#samples$ rijen, wat zelfs voor de kleinste dataset al oploopt tot om en bij de 500 miljoen rijen. Uit de metingen blijkt ook duidelijk dat het vullen van deze tabellen het meeste tijd in beslag neemt: zo'n 90\% van het totale laadproces. Met de bedenking erbij dat voor elke 50 variants, $4 * 50 * 1092$ rijen worden ingevoerd, en dit door 24 threads tegelijkertijd, haalt onze implementatie in deze setup voor deze hulptabellen een schrijfthroughput van in de orde van 100000 writes/s. Bovendien varieert de throughput nauwelijks met toenemende grootte (in variants) van de ingevoerde dataset. Om die reden, en omwille van de extreem lange duur, hebben we het experiment ook niet herhaald voor de \texttt{xl\_1092}-dataset. Een schatting leert dat het inladen hiervan in deze setup ongeveer 40 uur zou duren.\\
 Een belangrijke bemerking bij de snelheid van het inladen is dat het datamodel van onze implementatie, in tegenstelling tot de SQLite-implementatie, uitbreidbaar is: het is niet nodig elke keer extra genoomdata beschikbaar is, de volledige dataset opnieuw in te laden. Hoewel onze implementatie trager is, zou dit een eenmalige kost moeten zijn.\\
@@ -136,7 +134,7 @@ We hebben de performantie gemeten voor de \texttt{s\_1092}-dataset, in Cassandra
 \caption{Meetresultaten voor de duur van het inladen van genoomdata in Cassandra bij variabele grootte van de Cassandra-cluster. De gemeten tijden zijn de waarden voor \'e\'en batch van 50 variants, gemiddeld over 24 threads; de throughput is voor alle 24 threads opgeteld.}
 \end{table}
 
-\subsubsection{Reflectie}
+\subsubsection{Bespreking}
 
 De totale throughput stijgt merkbaar bij toenemende grootte van de cluster. Dit laat zich vooral merken bij het invoegen van de genotypes van de samples: gezien dit per batch veel meer writes inhoudt  (1092x meer) dan het invoeren van de variants in de  \texttt{variants}-tabel, laat het effect zich hier meer voelen. Bij stijging van 10 naar 12 nodes treedt er verzadiging op en stijgt de throughput niet meer zo drastisch als bij de overstap van 5 naar 7 of van 7 naar 10 nodes. Bij 10 nodes is de totale schrijfbandbreedte al voldoende groot en ligt de bottleneck weer bij GEMINI, eerder dan bij Cassandra.
 
@@ -238,14 +236,14 @@ We hebben de runtime van onderstaande 8 queries gemeten op de \texttt{s\_1092.vc
 \caption{Meetresultaten voor de executietijd van queries op de \texttt{m\_1092}-dataset in Cassandra en SQLite.}
 \end{table}
 
-\subsubsection{Reflectie}
+\subsubsection{Bespreking}
 
 Uit het resultaat voor query 1 en 2 blijkt dat GEMINI met Cassandra voor eenvoudige queries op de \texttt{variants}-tabel het grootste deel van de totale executietijd besteed aan het ophalen van het finale resultaat. GEMINI met SQLite moet hiervoor niet over het netwerk communiceren en is duidelijk sneller.\\
 Queries 3, 4 en 5 tonen dat de evaluatie van genotype-filters in GEMINI met Cassandra grootteordes sneller verloopt dan met SQLite: ongeacht de grootte van het resultaat zal SQLite \'e\'en voor \'e\'en alle variants overlopen, de binaire genotype-kolommen decomprimeren en de filter als een Python-\texttt{eval}-statement evalueren. GEMINI met Cassandra komt ervan af met een beperkt aantal (gelijk aan het aantal clausules in de filter) subqueries die elk slechts een subset van het totale variants teruggeven, en moet enkel de resultaten hiervan nog combineren. De totale kost hangt hier duidelijk samen met de kardinaliteit van het resultaat, waar die in het SQLite afhangt van het totale aantal variants.\\
 Queries 6, 7 en 8 tonen dat ook de evaluatie van genotype wildcards significant sneller verloopt met een Cassandra-database dan met een SQLite-database. Het evalueren van de subqueries duurt bij deze queries duidelijk langer dan in de eenvoudige genotype-filters van queries 4 \& 5, maar het zijn er dan ook beduidend meer. Er zijn 566 samples met fenotype 2, wat betekent dat elke wildcard zich vertaalt naar 566 subqueries. \\
 Het verschil in uitvoeringstijd tussen query 7 en 8 kan verklaard worden door de kardinaliteit van het resultaat van het linkerlid van de respectievelijke conjuncties: het linkerlid van query 7 geeft 0 variants terug, waardoor de evaluatie van het rechterlid overgeslagen kan worden. Het linkerlid van query 8 levert daarentegen een niet-ledige verzameling van variants op, waardoor het rechterlid wel ge\"evalueerd dient te worden. Dit kost opnieuw 566 subqueries.\\
 
-Voor de grotere \texttt{m\_1092}-dataset tekent zich een gelijkaardig scenario af: bij query 1 is onze implementatie trager dan GEMINI met SQLite, en besteedt onze versie veruit de meeste tijd aan het ophalen van de finale resultaten. Bij query 4 is er in dit geval zelfs een speedup van 150x waar te nemen tegenover SQLite, bij query 8 ondanks de complexe wildcard-evaluatie nog steeds een speedup van meer dan 10X. 
+Voor de grotere \texttt{m\_1092}-dataset tekent zich een gelijkaardig scenario af: bij query 1 is onze implementatie trager dan GEMINI met SQLite, en besteedt onze versie veruit de meeste tijd aan het ophalen van de finale resultaten. Bij query 4 is er in dit geval zelfs een speedup van 150x waar te nemen tegenover SQLite, bij query 8 ondanks de complexe wildcard-evaluatie nog steeds een speedup van meer dan 10x. 
 
 \subsection{Experiment 4: Schaalbaarheid \texttt{gemini query} bij parallellisatie GEMINI}
 \label{exp4}
@@ -277,7 +275,7 @@ Voor dit experiment hebben we query 1 en 8 uit experiment 3 (\ref{exp3}) hergebr
 \caption{Meetresultaten voor de executietijd van GEMINI-queries in een Cassandra-databank, voor een variabel aantal gebruikte threads.}
 \end{table}
 
-\subsubsection{Reflectie}
+\subsubsection{Bespreking}
 
 Uit de resultaten voor query 1 blijkt dat de runtime van eenvoudige queries met een resultaat met hoge kardinaliteit lineair afneemt met het aantal gebruikte threads. Gezien de evaluatie van de subqueries (in dit geval slechts 1) niet geparallelliseerd wordt, is er hierin weinig verschil te merken. Het verschil in de totale executietijd is dus volledig toe te schrijven aan verhoogde doorvoer bij het opvragen van de resultaten.\\
 Bij query 8 is er een gelijkaardige duidelijke daling van de executietijd merkbaar. Het valt niet eenduidig te zeggen in welke mate dit toe te schrijven is aan een verhoogde leesdoorvoer, dan wel aan parallellisatie van de vele set-operaties die nodig zijn om de resultaten van de subqueries te parallelliseren. Vermoedelijk spelen beide een rol.
@@ -311,7 +309,7 @@ Voor dit experiment hebben we query 1 en 8 uit experiment 3 (\ref{exp3}) hergebr
 \caption{Meetresultaten voor de executietijd van GEMINI-queries in een Cassandra-databank, voor variabele grootte van de Cassandra-cluster.}
 \end{table}
 
-\subsubsection{Reflectie}
+\subsubsection{Bespreking}
 
 Voor query 1 is er een duidelijke daling van de queryduur merkbaar. Gezien de grootte van het resultaat van query 1 heeft die alle baat bij een verhoogde leesthroughput: de duur van het evalueren van de query evolueert niet met de grootte van de cluster, de duur van het ophalen van de finale 339819 rijen wel.\\
 Query 8 verloopt ook sneller bij toenemend aantal nodes in de cluster, maar het effect is niet zo drastisch als bij query 1. Van 9 naar 11 nodes is er zelfs een stijging merkbaar. De geringere stijging van de snelheid valt te verklaren door het lagere aantal (sub)queries dat gebeurt tijdens het evalueren van query 8 dan tijdens het ophalen van het resultaat van query 1. Query 8 voert 556 subqueries uit, terwijl query 1 per 50 rijen (van de 339819) een query zal uitvoeren. Dit bevestigt de hypothese dat de evaluatie van query 8 eerder CPU- dan I/O-bound is.
@@ -331,22 +329,23 @@ We hebben de grootte van de Cassandra-databases per node vergeleken voor de \tex
 
 \begin{table}[h]
 \centering
-\begin{tabular}{@{}llll@{}}
-\cmidrule(l){2-4}
-                & \multicolumn{2}{|l|}{\textbf{Cassandra}}                                                      & \multicolumn{1}{l|}{\textbf{SQLite}}                             \\ 
-\cmidrule(l){1-4}
-\multicolumn{1}{|l|}{\textbf{Dataset}}  & \multicolumn{1}{l|}{\textbf{Per node [GB]}}               & \multicolumn{1}{l|}{\textbf{Totaal [GB]}} & \multicolumn{1}{l|}{\textbf{Totaal [GB]}} \\ \midrule
-\multicolumn{1}{|l|}{\texttt{s\_1092}} & \multicolumn{1}{l|}{$3.88 \pm 0.14$}             & \multicolumn{1}{l|}{$46.54$}          & \multicolumn{1}{l|}{$1.3$}                          \\
-\multicolumn{1}{|l|}{\texttt{m\_1092}} & \multicolumn{1}{l|}{$6.67 \pm 0.25$}             & \multicolumn{1}{l|}{$80.07$}          & \multicolumn{1}{l|}{$1.9$}                          \\
-\multicolumn{1}{|l|}{\texttt{l\_1092}} & \multicolumn{1}{l|}{$ $}             & \multicolumn{1}{l|}{$ $}          & \multicolumn{1}{l|}{$4.6$}                          \\
+\begin{tabular}{@{}lllll@{}}
+\cmidrule(l){3-5}
+           &     & \multicolumn{2}{|l|}{\textbf{Cassandra}}                                                      & \multicolumn{1}{l|}{\textbf{SQLite}}                             \\ 
+\cmidrule(l){1-5}
+\multicolumn{1}{|l|}{\textbf{Dataset}} & \multicolumn{1}{l|}{\textbf{\# Variants}} & \multicolumn{1}{l|}{\textbf{Per node [GB]}}               & \multicolumn{1}{l|}{\textbf{Totaal [GB]}} & \multicolumn{1}{l|}{\textbf{Totaal [GB]}} \\ \midrule
+\multicolumn{1}{|l|}{\texttt{s\_1092}} & \multicolumn{1}{l|}{494328} & \multicolumn{1}{l|}{$3.88 \pm 0.14$}             & \multicolumn{1}{l|}{$46.54$}          & \multicolumn{1}{l|}{$1.3$}                          \\
+\multicolumn{1}{|l|}{\texttt{m\_1092}} & \multicolumn{1}{l|}{855166} & \multicolumn{1}{l|}{$6.67 \pm 0.25$}             & \multicolumn{1}{l|}{$80.07$}          & \multicolumn{1}{l|}{$1.9$}                          \\
+\multicolumn{1}{|l|}{\texttt{l\_1092}} & \multicolumn{1}{l|}{1882663} & \multicolumn{1}{l|}{$ $}             & \multicolumn{1}{l|}{$ $}          & \multicolumn{1}{l|}{$4.6$}                          \\
 \bottomrule
 \end{tabular}
 \caption{Grootte in GB van de Cassandra- en SQLitedatabanken voor verschillende genoomdatasets. Replicatie is niet meegerekend voor de Cassandra-databases.}
 \end{table}
 
-\subsubsection{Reflectie}
+\subsubsection{Bespreking}
 
-De impact van de gegevensduplicatie in ons dataschema is duidelijk erg groot: vergeleken met de overeenkomstige SQLite-databanken, zijn de Cassandra-databanken vele malen groter, zelfs zonder replicatie in rekening te brengen. Wat ook meespeelt, is dat in SQLite alle genotype-gegevens in gecomprimeerd formaat bewaard worden, terwijl die in Cassandra gedecomprimeerd en bovendien meerdere keren (1 keer in de \texttt{variants}-tabel, 1 keer in de genotype-hulptabellen van de \texttt{variants}-tabel) opgeslagen worden.
+De impact van de gegevensduplicatie in ons dataschema is duidelijk erg groot: vergeleken met de overeenkomstige SQLite-databanken, zijn de Cassandra-databanken vele malen groter, zelfs zonder replicatie in rekening te brengen. Wat ook meespeelt, is dat in SQLite alle genotype-gegevens in gecomprimeerd formaat bewaard worden, terwijl die in Cassandra gedecomprimeerd en bovendien meerdere keren (1 keer in de \texttt{variants}-tabel, 1 keer in de genotype-hulptabellen van de \texttt{variants}-tabel) opgeslagen worden.\\
+Er blijkt ook een lineair verband te zijn tussen de grootte van de Cassandra-databank en het aantal opgeslagen variants (bij constant aantal samples).
 
 \section{Evaluatie: conclusie}
 
