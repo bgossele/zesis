@@ -103,7 +103,7 @@ Het inladen van de genoomdata verloopt in de orde van 10x sneller in de originel
 Een belangrijke bemerking bij de snelheid van het inladen is dat het datamodel van onze implementatie, in tegenstelling tot de SQLite-implementatie, uitbreidbaar is: het is niet nodig elke keer extra genoomdata beschikbaar is, de volledige dataset opnieuw in te laden. Hoewel onze implementatie trager is, zou dit een eenmalige kost moeten zijn.\\
 
 Het inladen in Cassandra verliep tijdens de experimenten niet zonder horten of stoten: af en toe traden timeouts op in de \texttt{INSERT}-queries, die altijd opgevangen konden worden door dezelfde query opnieuw te proberen (desnoods meerdere keren). Er zijn twee uitzonderingen die niet zomaar hersteld konden worden. Ten eerste het invoeren van zeer lange (strings van 10000'en of 100000'en karakters) genotypes in de \texttt{variants\_by\_samples\_gts}-tabel en ten tweede het invoeren van variants uit de \texttt{s\_2504}-dataset in de \texttt{variants}-tabel.\\
-Van de eerste soort komen er exact 5549 voor in de \texttt{s\_1092}-dataset (op ongeveer 500 miljoen genotypes van samples) en 3233 in de \texttt{m\_1092}-dataset (op meer dan 900 miljoen genotypes), die steevast voor een error bij het inladen zorgen.\\
+Van de eerste soort komen er exact 5549 voor in de \texttt{s\_1092}-dataset (op ongeveer 500 miljoen genotypes van samples), 3233 in de \texttt{m\_1092}-dataset (op meer dan 900 miljoen genotypes) en 14902 in de \texttt{l\_1092}-dataset (op 2 miljard genotypes), die steevast voor een error bij het inladen zorgen.\\
 Fouten van de tweede soort, in de dataset met 2504 samples, traden op omwille van de zeer lange \texttt{INSERT}-queries, met kolommen voor de verschillende genotype-eigenschappen van elke sample. Dit impliceert een sterke beperking op het aantal samples in de dataset. Wij hebben dit niet verder onderzocht, maar geloven dat hier zeker oplossingen voor te vinden zijn in toekomstig onderzoek. De SQLite-implementatie voerde de \texttt{s\_2504}-dataset probleemloos in.
 
   
@@ -337,7 +337,7 @@ We hebben de grootte van de Cassandra-databases per node vergeleken voor de \tex
 \multicolumn{1}{|l|}{\textbf{Dataset}} & \multicolumn{1}{l|}{\textbf{\# Variants}} & \multicolumn{1}{l|}{\textbf{Per node [GB]}}               & \multicolumn{1}{l|}{\textbf{Totaal [GB]}} & \multicolumn{1}{l|}{\textbf{Totaal [GB]}} \\ \midrule
 \multicolumn{1}{|l|}{\texttt{s\_1092}} & \multicolumn{1}{l|}{494328} & \multicolumn{1}{l|}{$3.88 \pm 0.14$}             & \multicolumn{1}{l|}{$46.54$}          & \multicolumn{1}{l|}{$1.3$}                          \\
 \multicolumn{1}{|l|}{\texttt{m\_1092}} & \multicolumn{1}{l|}{855166} & \multicolumn{1}{l|}{$6.67 \pm 0.25$}             & \multicolumn{1}{l|}{$80.07$}          & \multicolumn{1}{l|}{$1.9$}                          \\
-\multicolumn{1}{|l|}{\texttt{l\_1092}} & \multicolumn{1}{l|}{1882663} & \multicolumn{1}{l|}{$ $}             & \multicolumn{1}{l|}{$ $}          & \multicolumn{1}{l|}{$4.6$}                          \\
+\multicolumn{1}{|l|}{\texttt{l\_1092}} & \multicolumn{1}{l|}{1882663} & \multicolumn{1}{l|}{$14.92 \pm 0.91$}             & \multicolumn{1}{l|}{$179.09$}          & \multicolumn{1}{l|}{$4.6$}                          \\
 \bottomrule
 \end{tabular}
 \caption{Grootte in GB van de Cassandra- en SQLitedatabanken voor verschillende genoomdatasets. Replicatie is niet meegerekend voor de Cassandra-databases.}
