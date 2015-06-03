@@ -304,7 +304,7 @@ Voor dit experiment hebben we query 1 en 8 uit experiment 3 (\ref{exp3}) hergebr
 \midrule
 \multicolumn{1}{|l|}{\textbf{\# Nodes}}  & \multicolumn{1}{l|}{\textbf{Subqueries [s]}}               & \multicolumn{1}{l|}{\textbf{Totaal [s]}} & \multicolumn{1}{l|}{\textbf{Subqueries [s]}} & \multicolumn{1}{l|}{\textbf{Totaal [s]}} \\ \midrule
 \multicolumn{1}{|l|}{\textbf{5}} & \multicolumn{1}{l|}{$6.22 \pm 0.39$} & \multicolumn{1}{l|}{$549.01 \pm 6.03$}             & \multicolumn{1}{l|}{$531.97 \pm 3.04$}          & \multicolumn{1}{l|}{$547.30 \pm 3.19$}                        \\
-\multicolumn{1}{|l|}{\textbf{7}} & \multicolumn{1}{l|}{$6.19 \pm 0.09$} &\multicolumn{1}{l|}{$484.47 \pm 11.67$}            & \multicolumn{1}{l|}{$582.15 \pm 0.83$}          & \multicolumn{1}{l|}{$596.30 \pm 1.46$}                        \\
+\multicolumn{1}{|l|}{\textbf{7}} & \multicolumn{1}{l|}{$6.19 \pm 0.09$} &\multicolumn{1}{l|}{$484.47 \pm 11.67$}            & \multicolumn{1}{l|}{$513.28 \pm 1.08$}          & \multicolumn{1}{l|}{$527.26 \pm 1.27$}                        \\
 \multicolumn{1}{|l|}{\textbf{9}} & \multicolumn{1}{l|}{$6.34 \pm 0.13$} &\multicolumn{1}{l|}{$443.46 \pm 6.85$}            & \multicolumn{1}{l|}{$353.30 \pm 1.68$}           & \multicolumn{1}{l|}{$367.29 \pm 2.08$}                        \\
 \multicolumn{1}{|l|}{\textbf{11}} & \multicolumn{1}{l|}{$6.43 \pm 0.07$} &\multicolumn{1}{l|}{$363.32 \pm 5.83$}           & \multicolumn{1}{l|}{$373.85 \pm 0.91$}           & \multicolumn{1}{l|}{$388.49 \pm 0.96$}                        \\
 \bottomrule
@@ -315,7 +315,7 @@ Voor dit experiment hebben we query 1 en 8 uit experiment 3 (\ref{exp3}) hergebr
 \subsubsection{Bespreking}
 
 Voor query 1 is er een duidelijke daling van de queryduur merkbaar. Gezien de grootte van het resultaat van query 1 heeft die alle baat bij een verhoogde leesthroughput: de duur van het evalueren van de query evolueert niet met de grootte van de cluster, de duur van het ophalen van de finale 339819 rijen wel.\\
-Query 8 verloopt ook sneller bij toenemend aantal nodes in de cluster, maar het effect is niet zo drastisch als bij query 1. Van 5 naar 7 en van 9 naar 11 nodes is er zelfs een stijging merkbaar. De minder uitgesproken stijging van de snelheid valt te verklaren door het lagere aantal (sub)queries dat gebeurt tijdens het evalueren van query 8 dan tijdens het ophalen van het resultaat van query 1. Query 8 voert 556 subqueries uit, terwijl query 1 per 50 rijen (van de 339819) een query zal uitvoeren. Dit bevestigt de hypothese dat de evaluatie van query 8 eerder CPU- dan I/O-bound is.
+Query 8 verloopt ook sneller bij toenemend aantal nodes in de cluster, maar het effect is niet zo drastisch als bij query 1. Van 9 naar 11 nodes is er zelfs een stijging merkbaar. De minder uitgesproken stijging van de snelheid valt te verklaren door het lagere aantal (sub)queries dat gebeurt tijdens het evalueren van query 8 dan tijdens het ophalen van het resultaat van query 1. Query 8 voert 556 subqueries uit, terwijl query 1 per 50 rijen (van de 339819) een query zal uitvoeren. Dit bevestigt de hypothese dat de evaluatie van query 8 eerder CPU- dan I/O-bound is.
 
 \subsection{Experiment 6: Impact dataduplicatie}
 \label{exp6}
